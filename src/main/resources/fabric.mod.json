@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "rpgz",
+  "version": "0.3.0",
+  "name": "RPGZ",
+  "description": "Rpg Style Looting",
+  "authors": [
+    "Globox_Z"
+  ],
+  "contact": {
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/rpgz",
+    "sources": "https://github.com/FabricMC/fabric-example-mod"
+  },
+  "license": "GLPv3",
+  "icon": "assets/rpgz/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "net.rpgz.RpgzMain"
+    ]
+  },
+  "mixins": [
+    "rpgz.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.7.4",
+    "fabric": "*",
+    "minecraft": "1.16.x"
+  },
+  "accessWidener": "rpgz.aw"
+}

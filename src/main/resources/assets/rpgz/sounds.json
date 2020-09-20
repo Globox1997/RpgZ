@@ -1,0 +1,16 @@
+{
+  "loot": {
+    "sounds": [
+      "rpgz:loot_1",
+      "rpgz:loot_2",
+      "rpgz:loot_3"
+    ]
+  },
+  "coin_loot": {
+    "sounds": [
+      "rpgz:coin_loot_1",
+      "rpgz:coin_loot_2",
+      "rpgz:coin_loot_3"
+    ]
+  }
+}

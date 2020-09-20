@@ -1,0 +1,19 @@
+{
+  "replace": false,
+  "values": [
+    "#minecraft:music_discs",
+    "minecraft:diamond",
+    "minecraft:gold_ingot",
+    "minecraft:gold_nugget",
+    "minecraft:lapis_lazuli",
+    "minecraft:netherite_ingot",
+    "minecraft:emerald",
+    "minecraft:iron_ingot",
+    "minecraft:iron_nugget",
+    "minecraft:prismarine_crystals",
+    "minecraft:prismarine_shard",
+    "minecraft:totem_of_undying",
+    "minecraft:nether_star",
+    "minecraft:netherite_scrap"
+  ]
+}
