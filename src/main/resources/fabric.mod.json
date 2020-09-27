@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "rpgz",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "name": "RPGZ",
   "description": "Rpg Style Looting",
   "authors": [
@@ -9,7 +9,8 @@
   ],
   "contact": {
     "homepage": "https://www.curseforge.com/minecraft/mc-mods/rpgz",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "sources": "https://github.com/Globox1997/RpgZ",
+    "issues": "https://github.com/Globox1997/RpgZ/issues"
   },
   "license": "GLPv3",
   "icon": "assets/rpgz/icon.png",
