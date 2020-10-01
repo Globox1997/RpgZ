@@ -1,0 +1,6 @@
+{
+  "text.autoconfig.rpgz.title": "RpgZ Config",
+  "text.autoconfig.rpgz.option.drop_unlooted": "Drop loot after time",
+  "text.autoconfig.rpgz.option.drop_after_ticks.@PrefixText": "Duration in ticks (1s = 20ticks)",
+  "text.autoconfig.rpgz.option.drop_after_ticks": "Time before drop"
+}

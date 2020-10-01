@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "rpgz",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "name": "RPGZ",
   "description": "Rpg Style Looting",
   "authors": [
@@ -18,6 +18,9 @@
   "entrypoints": {
     "main": [
       "net.rpgz.RpgzMain"
+    ],
+    "modmenu": [
+      "net.rpgz.config.ModMenuIntegration"
     ]
   },
   "mixins": [

@@ -34,6 +34,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.rpgz.access.AddingInventoryItems;
+import net.rpgz.config.Config;
 import net.rpgz.ui.LivingEntityScreenHandler;
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
 
@@ -127,22 +128,15 @@ public abstract class LivingEntityMixin extends Entity implements AddingInventor
       BlockPos blockPos = new BlockPos(box.minX + 0.001D, box.minY + 0.001D, box.minZ + 0.001D).up();
       BlockPos blockPos2 = new BlockPos(box.maxX - 0.001D, box.maxY - 0.001D, box.maxZ - 0.001D);
       if (this.world.isRegionLoaded(blockPos, blockPos2)) {
-        if (!world.isClient && !this.inventory.isEmpty() && (world.getBlockState(blockPos).isFullCube(world, blockPos)
-            || world.getBlockState(blockPos2).isFullCube(world, blockPos2) || this.isBaby())) {
-          // world.setBlockState(blockPos, Blocks.GOLD_BLOCK.getDefaultState(), 3);
-          // world.setBlockState(blockPos2, Blocks.GOLD_BLOCK.getDefaultState(), 3);
+        if (!world.isClient && !this.inventory.isEmpty()
+            && (world.getBlockState(blockPos).isFullCube(world, blockPos)
+                || world.getBlockState(blockPos2).isFullCube(world, blockPos2) || this.isBaby()
+                || (Config.CONFIG.drop_unlooted && this.deathTime > Config.CONFIG.drop_after_ticks))) {
           this.inventory.clearToList().forEach(this::dropStack);
-          // for (int i = 0; i < this.inventory.size(); ++i) {
-          // ItemStack itemStack = this.inventory.getStack(i);
-          // if (!itemStack.isEmpty()) {// &&
-          // !EnchantmentHelper.hasVanishingCurse(itemStack)
-          // this.dropStack(itemStack);
-          // }
-          // }
         }
 
       }
-      // world.getClosestPlayer(this,// 1.0D)// !=// null// ||
+      // world.getClosestPlayer(this,// 1.0D)// !=// null// || Testing purpose
     }
     if ((this.deathTime >= 20 && !this.world.isClient && this.inventory.isEmpty()) || (this.deathTime == 4800)) {
       if (!this.world.isClient) { // Make sure only on server particle
@@ -214,31 +208,5 @@ public abstract class LivingEntityMixin extends Entity implements AddingInventor
   public boolean isBaby() {
     return false;
   }
-
-  // Test
-  @Shadow
-  protected void dropInventory() {
-  }
-
-  @Shadow
-  public void dropLoot(DamageSource source, boolean causedByPlayer) {
-  }
-
-  // public void dropAll() {
-  // Iterator<ItemStack> var1 = this.inventory.clearToList().iterator();
-
-  // while(var1.hasNext()) {
-  // List<ItemStack> list = (List)var1.next();
-
-  // for(int i = 0; i < list.size(); ++i) {
-  // ItemStack itemStack = (ItemStack)list.get(i);
-  // if (!itemStack.isEmpty()) {
-  // this.dropItem(itemStack.getItem(), 1);
-  // list.set(i, ItemStack.EMPTY);
-  // }
-  // }
-  // }
-
-  // }
 
 }
