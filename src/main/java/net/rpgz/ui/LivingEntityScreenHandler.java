@@ -11,9 +11,6 @@ import net.minecraft.sound.SoundCategory;
 import net.rpgz.sound.LootSounds;
 import net.rpgz.tag.Tags;
 
-import net.minecraft.screen.HorseScreenHandler;
-import net.minecraft.screen.SmithingScreenHandler;
-
 public class LivingEntityScreenHandler extends ScreenHandler {
    private final SimpleInventory inventory;
 
@@ -82,22 +79,6 @@ public class LivingEntityScreenHandler extends ScreenHandler {
       }
 
       return itemStack;
-   }
-
-   @Override
-   public boolean canInsertIntoSlot(ItemStack stack, Slot slot) {
-      return false;
-   }
-
-   @Override
-   public boolean canInsertIntoSlot(Slot slot) {
-      return false;
-   }
-
-   @Override
-   public void close(PlayerEntity player) {
-      super.close(player);
-      this.inventory.onClose(player);
    }
 
 }

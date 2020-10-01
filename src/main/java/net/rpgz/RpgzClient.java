@@ -6,8 +6,6 @@ public class RpgzClient implements ClientModInitializer {
 
   @Override
   public void onInitializeClient() {
-    // ScreenRegistry.register(RpgzMain.LIVING_ENTITY_CONTAINER,
-    // LivingEntitiyScreen::new);
   }
 
 }

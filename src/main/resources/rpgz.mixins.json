@@ -6,7 +6,6 @@
   "mixins": [
     "LivingEntityMixin",
     "MobEntityMixin",
-    "EntityMixin",
     "misc/BlazeEntityMixin",
     "misc/EndermanEntityMixin",
     "misc/PhantomEntityMixin",
@@ -16,11 +15,9 @@
   "client": [
     "LivingEntityRendererMixin",
     "InGameHudMixin",
-    "EntityModelMixin",
     "ClientWorldMixin",
     "GameRendererMixin",
-    "misc/SquidEntityModelMixin",
-    "MinecraftClientMixin"
+    "misc/SquidEntityModelMixin"
   ],
   "injectors": {
     "defaultRequire": 1
