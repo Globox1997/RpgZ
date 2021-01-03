@@ -100,7 +100,8 @@ public abstract class LivingEntityMixin extends Entity implements AddingInventor
     ++this.deathTime;
 
     if (this.isOnFire() && this.deathTime == 1) {
-      this.setFireTicks(0);
+      // this.setFireTicks(0);
+      this.extinguish();
     }
     if (this.getVehicle() != null) {
       this.stopRiding();
