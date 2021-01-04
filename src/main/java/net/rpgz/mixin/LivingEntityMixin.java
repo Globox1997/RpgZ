@@ -139,7 +139,10 @@ public abstract class LivingEntityMixin extends Entity implements AddingInventor
       }
       // world.getClosestPlayer(this,// 1.0D)// !=// null// || Testing purpose
     }
-    if ((this.deathTime >= 20 && !this.world.isClient && this.inventory.isEmpty()) || (this.deathTime == 4800)) {
+
+    if ((this.deathTime >= 20 && !this.world.isClient && this.inventory.isEmpty()
+        && Config.CONFIG.despawn_immediately_when_empty)
+        || (this.deathTime == Config.CONFIG.despawn_corps_after_ticks)) {
       if (!this.world.isClient) { // Make sure only on server particle
         this.despawnParticlesServer();
       }

@@ -13,5 +13,7 @@ public class RpgzConfig implements ConfigData {
   @ConfigEntry.Gui.PrefixText
   @Comment("Default: 2400ticks = 2min")
   public int drop_after_ticks = 2400;
+  public int despawn_corps_after_ticks = 4800;
+  public boolean despawn_immediately_when_empty = true;
 
 }
