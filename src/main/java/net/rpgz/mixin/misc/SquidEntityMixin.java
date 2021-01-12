@@ -6,21 +6,21 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.At;
 
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.mob.WaterCreatureEntity;
 import net.minecraft.entity.passive.SquidEntity;
+import net.minecraft.entity.passive.WaterMobEntity;
 import net.minecraft.world.World;
 
 @Mixin(SquidEntity.class)
-public abstract class SquidEntityMixin extends WaterCreatureEntity {
+public abstract class SquidEntityMixin extends WaterMobEntity {
 
-  public SquidEntityMixin(EntityType<? extends WaterCreatureEntity> entityType, World world) {
+  public SquidEntityMixin(EntityType<? extends WaterMobEntity> entityType, World world) {
     super(entityType, world);
   }
 
-  @Inject(method = "tickMovement", at = @At(value = "HEAD"), cancellable = true)
-  public void tickMovementMixinSquid(CallbackInfo info) {
-    if (this.isDead()) {
-      super.tickMovement();
+  @Inject(method = "livingTick", at = @At(value = "HEAD"), cancellable = true)
+  public void livingTickMixinSquid(CallbackInfo info) {
+    if (this.getShouldBeDead()) {
+      super.livingTick();
       info.cancel();
     }
   }

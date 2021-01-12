@@ -1,20 +1,20 @@
 package net.rpgz.sound;
 
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SoundEvent;
+import net.minecraftforge.registries.IForgeRegistry;
 
 public class LootSounds {
 
-  public static final Identifier LOOT_SOUND = new Identifier("rpgz:loot");
-  public static final Identifier COIN_LOOT_SOUND = new Identifier("rpgz:coin_loot");
+  public static final ResourceLocation LOOT_SOUND = new ResourceLocation("rpgz:loot");
+  public static final ResourceLocation COIN_LOOT_SOUND = new ResourceLocation("rpgz:coin_loot");
 
   public static SoundEvent LOOT_SOUND_EVENT = new SoundEvent(LOOT_SOUND);
   public static SoundEvent COIN_LOOT_SOUND_EVENT = new SoundEvent(COIN_LOOT_SOUND);
 
-  public static void init() {
-    Registry.register(Registry.SOUND_EVENT, LOOT_SOUND, LOOT_SOUND_EVENT);
-    Registry.register(Registry.SOUND_EVENT, COIN_LOOT_SOUND, COIN_LOOT_SOUND_EVENT);
-  }
+  public static void registerAll(IForgeRegistry<SoundEvent> registry) {
+		registry.register(LOOT_SOUND_EVENT.setRegistryName(LOOT_SOUND));
+		registry.register(COIN_LOOT_SOUND_EVENT.setRegistryName(COIN_LOOT_SOUND));
+	}
 
 }

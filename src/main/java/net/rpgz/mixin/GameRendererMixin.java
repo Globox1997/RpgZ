@@ -2,46 +2,46 @@ package net.rpgz.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.At;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.projectile.ProjectileUtil;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.EntityHitResult;
-import net.minecraft.util.hit.HitResult;
+import net.minecraft.entity.projectile.ProjectileHelper;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.util.math.EntityRayTraceResult;
+import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.vector.Vector3d;
 
 @Mixin(GameRenderer.class)
 public class GameRendererMixin {
   @Shadow
-  private final MinecraftClient client;
+  private final Minecraft mc;
 
-  public GameRendererMixin(MinecraftClient client) {
-    this.client = client;
+  public GameRendererMixin(Minecraft mc) {
+    this.mc = mc;
   }
 
-  @Inject(method = "updateTargetedEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/profiler/Profiler;pop()V"))
-  public void updateTargetedEntityMixin(float tickDelta, CallbackInfo info) {
-    Entity entity = this.client.getCameraEntity();
-    if (this.client.crosshairTarget.getType() == HitResult.Type.BLOCK) {
-      BlockPos pos = ((BlockHitResult) this.client.crosshairTarget).getBlockPos();
-      if (!this.client.world.getBlockState(pos).isFullCube(this.client.world, pos)) {
-        double reachDinstance = (double) this.client.interactionManager.getReachDistance();
-        Vec3d vec3d = this.client.player.getCameraPosVec(tickDelta);
-        Vec3d vec3d2 = this.client.player.getRotationVec(tickDelta);
-        Vec3d vec3d3 = vec3d.add(vec3d2.x * reachDinstance, vec3d2.y * reachDinstance, vec3d2.z * reachDinstance);
-        Box box = entity.getBoundingBox().stretch(vec3d2.multiply(reachDinstance)).expand(1.0D, 1.0D, 1.0D);
-        EntityHitResult entityHitResult = ProjectileUtil.raycast(entity, vec3d, vec3d3, box, (entityx) -> {
-          return !entityx.isSpectator() && entityx.collides();
+  @Inject(method = "getMouseOver", at = @At(value = "INVOKE", target = "Lnet/minecraft/profiler/IProfiler;endSection()V"))
+  public void getMouseOverMixin(float tickDelta, CallbackInfo info) {
+    Entity entity = this.mc.getRenderViewEntity();
+    if (this.mc.objectMouseOver.getType() == RayTraceResult.Type.BLOCK) {
+      BlockPos pos = ((BlockRayTraceResult) this.mc.objectMouseOver).getPos();
+      if (!this.mc.world.getBlockState(pos).hasOpaqueCollisionShape(this.mc.world, pos)) {
+        double reachDinstance = (double) this.mc.playerController.getBlockReachDistance();
+        Vector3d vec3d = this.mc.player.getEyePosition(tickDelta);
+        Vector3d vec3d2 = this.mc.player.getLook(tickDelta);
+        Vector3d vec3d3 = vec3d.add(vec3d2.x * reachDinstance, vec3d2.y * reachDinstance, vec3d2.z * reachDinstance);
+        AxisAlignedBB box = entity.getBoundingBox().expand(vec3d2.scale(reachDinstance)).expand(1.0D, 1.0D, 1.0D);
+        EntityRayTraceResult entityHitResult = ProjectileHelper.rayTraceEntities(entity, vec3d, vec3d3, box, (entityx) -> {
+          return !entityx.isSpectator() && entityx.canBeCollidedWith();
         }, 5D);
         if (entityHitResult != null) {
-          this.client.crosshairTarget = entityHitResult;
+          this.mc.objectMouseOver = entityHitResult;
         }
 
       }
@@ -49,4 +49,4 @@ public class GameRendererMixin {
     }
   }
 }
-// this.client.player.getMainHandStack().getItem() instanceof SwordItem
+// this.mc.player.getMainHandStack().getItem() instanceof SwordItem

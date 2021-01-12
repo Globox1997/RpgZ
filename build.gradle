@@ -1,67 +1,107 @@
-plugins {
-	id 'fabric-loom' version '0.5-SNAPSHOT'
-	id 'maven-publish'
+buildscript {
+    repositories {
+        maven { url = 'https://files.minecraftforge.net/maven' }
+		maven { url = 'https://dist.creeper.host/Sponge/maven' }
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+		classpath group: 'org.spongepowered', name: 'mixingradle', version: '0.7-SNAPSHOT'
+    }
 }
+apply plugin: 'net.minecraftforge.gradle'
+// Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
+apply plugin: 'eclipse'
+apply plugin: 'maven-publish'
+apply plugin: 'org.spongepowered.mixin'
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+mixin {
+    add sourceSets.main, "rpgz.refmap.json"
+}
 
 archivesBaseName = project.archives_base_name
 version = project.mod_version
 group = project.maven_group
 
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
+
+println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
+println('Mod Name: ' + modFilename + ', Mod Version: ' + mod_version + ', Minecraft Version: ' + modMinecraftVersion + ', Forge Version: ' + modForgeVersion)
 minecraft {
-	accessWidener "src/main/resources/rpgz.aw"
+    mappings channel: mappingsChannel, version: mappingsVersion
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+    runs {
+        client {
+            workingDirectory project.file('run/client')
+
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+			//properties 'mixin.env.disableRefMap': 'true'
+			arg "-mixin.config=rpgz.mixins.json"
+
+            property 'forge.logging.console.level', 'debug'
+			
+			args '--username', 'CodeHexIO', '--uuid', 'c5751ce1d50e4d47ca120e1ea1c75542'
+
+            mods {
+                modId {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        server {
+            workingDirectory project.file('run/server')
+
+            // Recommended logging data for a userdev environment
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+			//properties 'mixin.env.disableRefMap': 'true'
+			arg "-mixin.config=rpgz.mixins.json"
+
+            // Recommended logging level for the console
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                modId {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
+}
+
+repositories {
+	maven {  url = "https://repo.spongepowered.org/maven" } // mixin
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	minecraft 'net.minecraftforge:forge:' + modMinecraftVersion + '-' + modForgeVersion
+	compile 'org.spongepowered:mixin:0.8'
+	compile fileTree(include: ['*.jar'], dir: 'libs')
 
-	// Config
-	modApi("me.shedaniel.cloth:config-2:${project.cloth_config_version}") {
-      exclude(group: "net.fabricmc.fabric-api")
- 	}
-	include("me.shedaniel.cloth:config-2:${project.cloth_config_version}") {
-      exclude(group: "net.fabricmc.fabric-api")
-  	}
-	modApi("me.sargunvohra.mcmods:autoconfig1u:${project.auto_config_version}") {
-      exclude(group: "net.fabricmc.fabric-api")
-  	}
-	include("me.sargunvohra.mcmods:autoconfig1u:${project.auto_config_version}") {
-      exclude(group: "net.fabricmc.fabric-api")
-  	}
-	// Modmenu dev
-	modCompile "io.github.prospector:modmenu:${project.mod_menu_version}",{
-			exclude(group: "net.fabricmc.fabric-api")
-	}
 }
-
+// Process resources on build
 processResources {
-	inputs.property "version", project.version
-
+	// This will ensure that this task is redone when the versions change.
+	inputs.property 'version', mod_version
+	
+	// Replace stuff in mods.toml, nothing else
 	from(sourceSets.main.resources.srcDirs) {
-		include "fabric.mod.json"
-		expand "version": project.version
+		include 'META-INF/mods.toml'
+		
+		// Replace version
+		expand 'version': mod_version
 	}
-
+	// Copy everything else except the mods.toml
 	from(sourceSets.main.resources.srcDirs) {
-		exclude "fabric.mod.json"
+		exclude 'META-INF/mods.toml'
 	}
 }
 
-// ensure that the encoding is set to UTF-8, no matter what the system default is
-// this fixes some edge cases with special characters not displaying correctly
-// see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
 tasks.withType(JavaCompile) {
 	options.encoding = "UTF-8"
 }
 
-// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-// if it is present.
-// If you remove this task, sources will not be generated.
 task sourcesJar(type: Jar, dependsOn: classes) {
 	classifier = "sources"
 	from sourceSets.main.allSource
@@ -69,6 +109,12 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 
 jar {
 	from "LICENSE"
+    manifest {
+        attributes([
+            // Existing properties here
+            "MixinConfigs": "rpgz.mixins.json"
+        ])
+    }
 }
 
 // configure the maven publication
@@ -76,12 +122,12 @@ publishing {
 	publications {
 		mavenJava(MavenPublication) {
 			// add all the jars that should be included when publishing to maven
-			artifact(remapJar) {
-				builtBy remapJar
-			}
-			artifact(sourcesJar) {
-				builtBy remapSourcesJar
-			}
+			//artifact(remapJar) {
+			//	builtBy remapJar
+			//}
+			//artifact(sourcesJar) {
+			//	builtBy remapSourcesJar
+			//}
 		}
 	}
 

@@ -1,0 +1,36 @@
+
+modLoader="javafml"
+loaderVersion="[35,)"
+license="GLPv3"
+issueTrackerURL="https://github.com/Globox1997/RpgZ/issues"
+logoFile="icon.png"
+[[mods]]
+modId="rpgz"
+version="${version}"
+displayName="RpgZ"
+updateJSONURL="https://raw.githubusercontent.com/Globox1997/RpgZ/master/update.json"
+displayURL="https://www.curseforge.com/minecraft/mc-mods/rpgz"
+credits="Obviously you for downloading this mod"
+authors="Globox_Z"
+description='''
+Rpg Style Looting
+'''
+# A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.
+[[dependencies.rpgz]] #optional
+    # the modid of the dependency
+    modId="forge" #mandatory
+    # Does this dependency have to exist - if not, ordering below must be specified
+    mandatory=true #mandatory
+    # The version range of the dependency
+    versionRange="[35.1.7,)" #mandatory
+    # An ordering relationship for the dependency - BEFORE or AFTER required if the relationship is not mandatory
+    ordering="NONE"
+    # Side this dependency is applied on - BOTH, CLIENT or SERVER
+    side="BOTH"
+# Here's another dependency
+[[dependencies.rpgz]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.16.4,)"
+    ordering="NONE"
+    side="BOTH"

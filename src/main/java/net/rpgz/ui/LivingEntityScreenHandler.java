@@ -2,31 +2,31 @@ package net.rpgz.ui;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.SimpleInventory;
+import net.minecraft.inventory.Inventory;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.ContainerType;
+import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.sound.SoundCategory;
+import net.minecraft.util.SoundCategory;
 import net.rpgz.sound.LootSounds;
 import net.rpgz.tag.Tags;
 
-public class LivingEntityScreenHandler extends ScreenHandler {
-   private final SimpleInventory inventory;
+public class LivingEntityScreenHandler extends Container {
+   private final Inventory inventory;
 
    public LivingEntityScreenHandler(int syncId, PlayerInventory playerInventory) {
-      this(syncId, playerInventory, new SimpleInventory());
+      this(syncId, playerInventory, new Inventory());
    }
 
-   public LivingEntityScreenHandler(int syncId, PlayerInventory playerInventory, SimpleInventory simpleInventory) {
-      super(ScreenHandlerType.GENERIC_9X1, syncId);
+   public LivingEntityScreenHandler(int syncId, PlayerInventory playerInventory, Inventory simpleInventory) {
+      super(ContainerType.GENERIC_9X1, syncId);
       this.inventory = simpleInventory;
 
       int m;
       for (m = 0; m < 9; ++m) {
          this.addSlot(new Slot(inventory, m, 8 + m * 18, 20) {
             @Override
-            public boolean canInsert(ItemStack stack) {
+            public boolean isItemValid(ItemStack stack) {
                return false;
             }
          });
@@ -43,32 +43,32 @@ public class LivingEntityScreenHandler extends ScreenHandler {
    }
 
    @Override
-   public boolean canUse(PlayerEntity player) {
+   public boolean canInteractWith(PlayerEntity player) {
       return true;
    }
 
    @Override
-   public ItemStack transferSlot(PlayerEntity player, int index) {
+   public ItemStack transferStackInSlot(PlayerEntity player, int index) {
       Boolean rareItem = false;
       ItemStack itemStack = ItemStack.EMPTY;
-      Slot slot = (Slot) this.slots.get(index);
-      if (slot != null && slot.hasStack()) {
+      Slot slot = (Slot) this.inventorySlots.get(index);
+      if (slot != null && slot.getHasStack()) {
          ItemStack itemStack2 = slot.getStack();
          itemStack = itemStack2.copy();
          if (itemStack.getItem().isIn(Tags.RARE_ITEMS)) {
             rareItem = true;
          }
-         if (index < this.inventory.size()) {
-            if (!this.insertItem(itemStack2, this.inventory.size(), this.slots.size(), true)) {
+         if (index < this.inventory.getSizeInventory()) {
+            if (!this.mergeItemStack(itemStack2, this.inventory.getSizeInventory(), this.inventorySlots.size(), true)) {
                return ItemStack.EMPTY;
             }
-         } else if (!this.insertItem(itemStack2, 0, this.inventory.size(), false)) {
+         } else if (!this.mergeItemStack(itemStack2, 0, this.inventory.getSizeInventory(), false)) {
             return ItemStack.EMPTY;
          }
          if (itemStack2.isEmpty()) {
-            slot.setStack(ItemStack.EMPTY);
+            slot.putStack(ItemStack.EMPTY);
          } else {
-            slot.markDirty();
+            slot.onSlotChanged();
          }
       }
 

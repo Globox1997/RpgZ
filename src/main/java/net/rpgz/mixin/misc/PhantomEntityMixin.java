@@ -6,8 +6,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.At;
 
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.entity.mob.PhantomEntity;
+import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.monster.PhantomEntity;
 import net.minecraft.world.World;
 
 @Mixin(PhantomEntity.class)
@@ -16,10 +16,10 @@ public abstract class PhantomEntityMixin extends MobEntity {
     super(entityType, world);
   }
 
-  @Inject(method = "tickMovement", at = @At(value = "HEAD"), cancellable = true)
-  public void tickMovementMixinPhantom(CallbackInfo info) {
+  @Inject(method = "livingTick", at = @At(value = "HEAD"), cancellable = true)
+  public void livingTickMixinPhantom(CallbackInfo info) {
     if (this.deathTime > 0) {
-      super.tickMovement();
+      super.livingTick();
       info.cancel();
     }
   }

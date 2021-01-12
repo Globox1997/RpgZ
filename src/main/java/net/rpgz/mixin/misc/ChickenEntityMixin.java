@@ -14,26 +14,26 @@ import net.minecraft.world.World;
 @Mixin(ChickenEntity.class)
 public abstract class ChickenEntityMixin extends AnimalEntity {
   @Shadow
-  public float flapProgress;
+  public float wingRotation;
   @Shadow
-  public float maxWingDeviation;
+  public float destPos;
   @Shadow
-  public float prevMaxWingDeviation;
+  public float oFlapSpeed;
   @Shadow
-  public float prevFlapProgress;
+  public float oFlap;
 
   public ChickenEntityMixin(EntityType<? extends AnimalEntity> entityType, World world) {
     super(entityType, world);
   }
 
-  @Inject(method = "tickMovement", at = @At(value = "HEAD"), cancellable = true)
-  public void tickMovementChickenBlaze(CallbackInfo info) {
-    if (this.isDead()) {
-      super.tickMovement();
-      this.flapProgress = 0.0F;
-      this.maxWingDeviation = 0.0F;
-      this.prevMaxWingDeviation = 0.0F;
-      this.prevFlapProgress = 0.0F;
+  @Inject(method = "livingTick", at = @At(value = "HEAD"), cancellable = true)
+  public void livingTickChickenBlaze(CallbackInfo info) {
+    if (this.getShouldBeDead()) {
+      super.livingTick();
+      this.wingRotation = 0.0F;
+      this.destPos = 0.0F;
+      this.oFlapSpeed = 0.0F;
+      this.oFlap = 0.0F;
       info.cancel();
     }
   }
