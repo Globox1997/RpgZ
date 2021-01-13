@@ -29,3 +29,4 @@ bin/
 run/
 /.apt_generated/
 /Java Projects/
+*.log
