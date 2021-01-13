@@ -1,10 +1,88 @@
 {
   "mappings": {
-   
+    "net/rpgz/mixin/misc/PhantomEntityMixin": {
+      "livingTick": "Lnet/minecraft/entity/monster/PhantomEntity;func_70636_d()V"
+    },
+    "net/rpgz/mixin/misc/SquidEntityModelMixin": {
+      "setRotationAngles": "Lnet/minecraft/client/renderer/entity/model/SquidModel;func_225597_a_(Lnet/minecraft/entity/Entity;FFFFF)V"
+    },
+    "net/rpgz/mixin/LivingEntityRendererMixin": {
+      "applyRotations": "Lnet/minecraft/client/renderer/entity/LivingRenderer;func_225621_a_(Lnet/minecraft/entity/LivingEntity;Lcom/mojang/blaze3d/matrix/MatrixStack;FFF)V",
+      "Lnet/minecraft/client/renderer/entity/LivingRenderer;applyRotations(Lnet/minecraft/entity/LivingEntity;Lcom/mojang/blaze3d/matrix/MatrixStack;FFF)V": "Lnet/minecraft/client/renderer/entity/LivingRenderer;func_225621_a_(Lnet/minecraft/entity/LivingEntity;Lcom/mojang/blaze3d/matrix/MatrixStack;FFF)V"
+    },
+    "net/rpgz/mixin/misc/EndermanEntityMixin": {
+      "livingTick": "Lnet/minecraft/entity/monster/EndermanEntity;func_70636_d()V"
+    },
+    "net/rpgz/mixin/InGameHudMixin": {
+      "renderIngameGui": "Lnet/minecraft/client/gui/IngameGui;func_238445_a_(Lcom/mojang/blaze3d/matrix/MatrixStack;F)V"
+    },
+    "net/rpgz/mixin/LivingEntityMixin": {
+      "dropLoot": "Lnet/minecraft/entity/LivingEntity;func_213354_a(Lnet/minecraft/util/DamageSource;Z)V",
+      "livingTick": "Lnet/minecraft/entity/LivingEntity;func_70636_d()V"
+    },
+    "net/rpgz/mixin/misc/SquidEntityMixin": {
+      "livingTick": "Lnet/minecraft/entity/passive/SquidEntity;func_70636_d()V"
+    },
+    "net/rpgz/mixin/GameRendererMixin": {
+      "getMouseOver": "Lnet/minecraft/client/renderer/GameRenderer;func_78473_a(F)V",
+      "Lnet/minecraft/profiler/IProfiler;endSection()V": "Lnet/minecraft/profiler/IProfiler;func_76319_b()V"
+    },
+    "net/rpgz/mixin/ClientWorldMixin": {
+      "Lnet/minecraft/client/world/ClientWorld;updateEntity(Lnet/minecraft/entity/Entity;)V": "Lnet/minecraft/client/world/ClientWorld;func_217418_a(Lnet/minecraft/entity/Entity;)V",
+      "Lnet/minecraft/entity/Entity;tick()V": "Lnet/minecraft/entity/Entity;func_70071_h_()V"
+    },
+    "net/rpgz/mixin/misc/ChickenEntityMixin": {
+      "livingTick": "Lnet/minecraft/entity/passive/ChickenEntity;func_70636_d()V"
+    },
+    "net/rpgz/mixin/misc/BlazeEntityMixin": {
+      "livingTick": "Lnet/minecraft/entity/monster/BlazeEntity;func_70636_d()V"
+    },
+    "net/rpgz/mixin/MobEntityMixin": {
+      "Lnet/minecraft/entity/MobEntity;isInDaylight()Z": "Lnet/minecraft/entity/MobEntity;func_204609_dp()Z"
+    }
   },
   "data": {
     "searge": {
-      
+      "net/rpgz/mixin/misc/PhantomEntityMixin": {
+        "livingTick": "Lnet/minecraft/entity/monster/PhantomEntity;func_70636_d()V"
+      },
+      "net/rpgz/mixin/misc/SquidEntityModelMixin": {
+        "setRotationAngles": "Lnet/minecraft/client/renderer/entity/model/SquidModel;func_225597_a_(Lnet/minecraft/entity/Entity;FFFFF)V"
+      },
+      "net/rpgz/mixin/LivingEntityRendererMixin": {
+        "applyRotations": "Lnet/minecraft/client/renderer/entity/LivingRenderer;func_225621_a_(Lnet/minecraft/entity/LivingEntity;Lcom/mojang/blaze3d/matrix/MatrixStack;FFF)V",
+        "Lnet/minecraft/client/renderer/entity/LivingRenderer;applyRotations(Lnet/minecraft/entity/LivingEntity;Lcom/mojang/blaze3d/matrix/MatrixStack;FFF)V": "Lnet/minecraft/client/renderer/entity/LivingRenderer;func_225621_a_(Lnet/minecraft/entity/LivingEntity;Lcom/mojang/blaze3d/matrix/MatrixStack;FFF)V"
+      },
+      "net/rpgz/mixin/misc/EndermanEntityMixin": {
+        "livingTick": "Lnet/minecraft/entity/monster/EndermanEntity;func_70636_d()V"
+      },
+      "net/rpgz/mixin/InGameHudMixin": {
+        "renderIngameGui": "Lnet/minecraft/client/gui/IngameGui;func_238445_a_(Lcom/mojang/blaze3d/matrix/MatrixStack;F)V"
+      },
+      "net/rpgz/mixin/LivingEntityMixin": {
+        "dropLoot": "Lnet/minecraft/entity/LivingEntity;func_213354_a(Lnet/minecraft/util/DamageSource;Z)V",
+        "livingTick": "Lnet/minecraft/entity/LivingEntity;func_70636_d()V"
+      },
+      "net/rpgz/mixin/misc/SquidEntityMixin": {
+        "livingTick": "Lnet/minecraft/entity/passive/SquidEntity;func_70636_d()V"
+      },
+      "net/rpgz/mixin/GameRendererMixin": {
+        "getMouseOver": "Lnet/minecraft/client/renderer/GameRenderer;func_78473_a(F)V",
+        "Lnet/minecraft/profiler/IProfiler;endSection()V": "Lnet/minecraft/profiler/IProfiler;func_76319_b()V"
+      },
+      "net/rpgz/mixin/ClientWorldMixin": {
+        "Lnet/minecraft/client/world/ClientWorld;updateEntity(Lnet/minecraft/entity/Entity;)V": "Lnet/minecraft/client/world/ClientWorld;func_217418_a(Lnet/minecraft/entity/Entity;)V",
+        "Lnet/minecraft/entity/Entity;tick()V": "Lnet/minecraft/entity/Entity;func_70071_h_()V"
+      },
+      "net/rpgz/mixin/misc/ChickenEntityMixin": {
+        "livingTick": "Lnet/minecraft/entity/passive/ChickenEntity;func_70636_d()V"
+      },
+      "net/rpgz/mixin/misc/BlazeEntityMixin": {
+        "livingTick": "Lnet/minecraft/entity/monster/BlazeEntity;func_70636_d()V"
+      },
+      "net/rpgz/mixin/MobEntityMixin": {
+        "Lnet/minecraft/entity/MobEntity;isInDaylight()Z": "Lnet/minecraft/entity/MobEntity;func_204609_dp()Z"
+      }
     }
   }
 }
