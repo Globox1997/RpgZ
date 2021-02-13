@@ -13,3 +13,5 @@ accessible method net/minecraft/client/render/entity/LivingEntityRenderer getAni
 accessible method net/minecraft/client/render/entity/feature/FeatureRenderer render (Lnet/minecraft/client/render/entity/model/EntityModel;Lnet/minecraft/client/render/entity/model/EntityModel;Lnet/minecraft/util/Identifier;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;ILnet/minecraft/entity/LivingEntity;FFFFFFFFF)V
 
 accessible method net/minecraft/client/render/entity/SquidEntityRenderer setupTransforms (Lnet/minecraft/entity/passive/SquidEntity;Lnet/minecraft/client/util/math/MatrixStack;FFF)V
+
+accessible field net/minecraft/entity/passive/SheepEntity DROPS Ljava/util/Map;
