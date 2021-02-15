@@ -11,7 +11,8 @@
     "misc/EndermanEntityMixin",
     "misc/PhantomEntityMixin",
     "misc/SquidEntityMixin",
-    "misc/ChickenEntityMixin"
+    "misc/ChickenEntityMixin",
+    "misc/SheepEntityMixin"
   ],
   "client": [
     "LivingEntityRendererMixin",
