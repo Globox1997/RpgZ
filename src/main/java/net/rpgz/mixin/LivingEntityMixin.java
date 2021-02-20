@@ -33,21 +33,19 @@ import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import net.rpgz.access.AddingInventoryItems;
+import net.rpgz.access.InventoryAccess;
 import net.rpgz.config.Config;
 import net.rpgz.ui.LivingEntityScreenHandler;
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
 
 @Mixin(LivingEntity.class)
-public abstract class LivingEntityMixin extends Entity implements AddingInventoryItems {
+public abstract class LivingEntityMixin extends Entity implements InventoryAccess {
   @Shadow
   public int deathTime;
   @Shadow
   public float bodyYaw;
   @Shadow
   protected int playerHitTimer;
-
-  SimpleInventory inventory = new SimpleInventory(9);
 
   public LivingEntityMixin(EntityType<? extends LivingEntity> entityType, World world) {
     super(entityType, world);
