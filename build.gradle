@@ -72,12 +72,14 @@ minecraft {
 
 repositories {
 	maven {  url = "https://repo.spongepowered.org/maven" } // mixin
+	maven {url "https://www.cursemaven.com"}
 }
 
 dependencies {
 	minecraft 'net.minecraftforge:forge:' + modMinecraftVersion + '-' + modForgeVersion
 	compile 'org.spongepowered:mixin:0.8'
 	compile fileTree(include: ['*.jar'], dir: 'libs')
+	compile fg.deobf("curse.maven:scaling-health-248027:"+scalinghealthID)
 
 }
 // Process resources on build

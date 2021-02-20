@@ -13,6 +13,7 @@ import net.minecraft.entity.FlyingEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.Pose;
+import net.minecraft.entity.passive.SheepEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.Fluids;
@@ -146,7 +147,8 @@ public abstract class LivingEntityMixin extends Entity implements AddingInventor
       if (!this.world.isRemote) { // Make sure only on server particle
         this.despawnParticlesServer();
       }
-      this.remove();
+      
+      this.remove((Object) this instanceof net.minecraft.entity.player.ServerPlayerEntity);
     }
 
   }
