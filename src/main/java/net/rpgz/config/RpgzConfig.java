@@ -10,6 +10,7 @@ import me.sargunvohra.mcmods.autoconfig1u.annotation.Config;
 public class RpgzConfig implements ConfigData {
 
   public boolean drop_unlooted = false;
+  public boolean hopper_extracting = false;
   @ConfigEntry.Gui.PrefixText
   @Comment("Default: 2400ticks = 2min")
   public int drop_after_ticks = 2400;
