@@ -32,7 +32,6 @@ public abstract class HopperBlockEntityMixin implements InventoryAccess {
             if (ticking >= 20) {
                 BlockPos pos = new BlockPos(hopper.getHopperX(), hopper.getHopperY(), hopper.getHopperZ());
                 Box box = new Box(pos).expand(0.0D, 1.0D, 0.0D);
-                System.out.println(box);
                 List<LivingEntity> list = hopper.getWorld().getEntitiesByClass(LivingEntity.class, box,
                         EntityPredicates.EXCEPT_SPECTATOR);
                 if (!list.isEmpty()) {
@@ -40,7 +39,6 @@ public abstract class HopperBlockEntityMixin implements InventoryAccess {
                     while (iterator.hasNext()) {
                         LivingEntity livingEntity = (LivingEntity) iterator.next();
                         if (livingEntity.isDead()) {
-                            System.out.print(((InventoryAccess) livingEntity).getInventory()+" ");
                             if (((InventoryAccess) livingEntity).getInventory() != null) {
                                 Direction direction = Direction.DOWN;
                                 info.setReturnValue(
