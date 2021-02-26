@@ -5,7 +5,7 @@ import net.minecraft.item.ItemStack;
 
 public interface InventoryAccess {
 
-    public SimpleInventory inventory = new SimpleInventory(9);
+    public SimpleInventory getInventory();
 
     public void addingInventoryItems(ItemStack stack);
 }

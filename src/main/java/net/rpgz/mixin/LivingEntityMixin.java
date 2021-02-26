@@ -17,6 +17,7 @@ import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.Fluids;
+import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.loot.LootTable;
 import net.minecraft.loot.context.LootContext;
@@ -46,6 +47,8 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
   public float bodyYaw;
   @Shadow
   protected int playerHitTimer;
+
+  public SimpleInventory inventory = new SimpleInventory(9);
 
   public LivingEntityMixin(EntityType<? extends LivingEntity> entityType, World world) {
     super(entityType, world);
@@ -210,6 +213,11 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
   @Shadow
   public boolean isBaby() {
     return false;
+  }
+
+  @Override
+  public SimpleInventory getInventory() {
+    return this.inventory;
   }
 
 }
