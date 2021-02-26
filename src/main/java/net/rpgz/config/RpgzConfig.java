@@ -1,5 +1,8 @@
 package net.rpgz.config;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import me.sargunvohra.mcmods.autoconfig1u.ConfigData;
 import me.sargunvohra.mcmods.autoconfig1u.annotation.ConfigEntry;
 import me.sargunvohra.mcmods.autoconfig1u.shadowed.blue.endless.jankson.Comment;
@@ -16,5 +19,7 @@ public class RpgzConfig implements ConfigData {
   public int drop_after_ticks = 2400;
   public int despawn_corps_after_ticks = 4800;
   public boolean despawn_immediately_when_empty = true;
+  @Comment("Example: minecraft:zombie or adventurez.brown_fungus")
+  public List<String> excluded_entities = new ArrayList<>();
 
 }

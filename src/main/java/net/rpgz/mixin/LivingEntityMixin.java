@@ -126,6 +126,8 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
       // this.checkBlockCollision(); //Doesnt solve problem
       // if (this.isInsideWall()) {} // Doenst work
 
+      // entity.adventurez.brown_fungus example for another mod printing when
+      // this.getType().toString() is used
       Box box = this.getBoundingBox();
       BlockPos blockPos = new BlockPos(box.minX + 0.001D, box.minY + 0.001D, box.minZ + 0.001D).up();
       BlockPos blockPos2 = new BlockPos(box.maxX - 0.001D, box.maxY - 0.001D, box.maxZ - 0.001D);
@@ -134,7 +136,9 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
             && (world.getBlockState(blockPos).isFullCube(world, blockPos)
                 || world.getBlockState(blockPos2).isFullCube(world, blockPos2) || this.isBaby()
                 || (Config.CONFIG.drop_unlooted && this.deathTime > Config.CONFIG.drop_after_ticks))
-            || this.getType().isIn(Tags.EXCLUDED_ENTITIES)) {
+            || this.getType().isIn(Tags.EXCLUDED_ENTITIES)
+            || Config.CONFIG.excluded_entities.contains(this.getType().toString().replace("entity.", ""))) {
+
           this.inventory.clearToList().forEach(this::dropStack);
         }
 
