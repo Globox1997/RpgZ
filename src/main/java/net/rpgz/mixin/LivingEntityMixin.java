@@ -17,7 +17,6 @@ import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.Fluids;
-import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.loot.LootTable;
 import net.minecraft.loot.context.LootContext;
@@ -35,6 +34,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.rpgz.access.InventoryAccess;
 import net.rpgz.config.Config;
+import net.rpgz.tag.Tags;
 import net.rpgz.ui.LivingEntityScreenHandler;
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
 
@@ -130,7 +130,8 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
         if (!world.isClient && !this.inventory.isEmpty()
             && (world.getBlockState(blockPos).isFullCube(world, blockPos)
                 || world.getBlockState(blockPos2).isFullCube(world, blockPos2) || this.isBaby()
-                || (Config.CONFIG.drop_unlooted && this.deathTime > Config.CONFIG.drop_after_ticks))) {
+                || (Config.CONFIG.drop_unlooted && this.deathTime > Config.CONFIG.drop_after_ticks))
+            || this.getType().isIn(Tags.EXCLUDED_ENTITIES)) {
           this.inventory.clearToList().forEach(this::dropStack);
         }
 
