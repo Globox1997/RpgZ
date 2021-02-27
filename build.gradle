@@ -89,6 +89,7 @@ dependencies {
 	compile 'org.spongepowered:mixin:0.8'
 	compile fileTree(include: ['*.jar'], dir: 'libs')
 	compile fg.deobf("curse.maven:scaling-health-248027:"+scalinghealthID)
+	compile fg.deobf("curse.maven:silent-lib-242998:"+silentlibID)
 
 }
 // Process resources on build

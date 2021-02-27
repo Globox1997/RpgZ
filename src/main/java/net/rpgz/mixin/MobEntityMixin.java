@@ -18,10 +18,10 @@ import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import net.rpgz.access.AddingInventoryItems;
+import net.rpgz.access.IInventoryAccess;
 
 @Mixin(MobEntity.class)
-public abstract class MobEntityMixin extends LivingEntity implements AddingInventoryItems {
+public abstract class MobEntityMixin extends LivingEntity implements IInventoryAccess {
 
   @Shadow
   @Final
