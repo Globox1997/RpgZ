@@ -1,16 +1,12 @@
 package net.rpgz.tag;
 
+import net.minecraft.entity.EntityType;
 import net.minecraft.item.Item;
 import net.minecraft.tags.ITag;
 
 public class Tags {
 
-	public static /* final */ITag<Item> RARE_ITEMS;/*
-											 * = ForgeTagHandler.makeWrapperTag(Item.class, new ResourceLocation("rpgz",
-											 * "rare_items"));
-											 */
-
-//  public static void init() {
-//  }
+	public static ITag<Item> RARE_ITEMS;
+	public static ITag<EntityType<?>> EXCLUDED_ENTITIES;
 
 }

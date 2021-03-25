@@ -36,6 +36,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.rpgz.access.IInventoryAccess;
 import net.rpgz.forge.config.RPGZConfig;
+import net.rpgz.tag.Tags;
 import net.rpgz.ui.LivingEntityScreenHandler;
 
 @Mixin(LivingEntity.class)
@@ -132,7 +133,8 @@ public abstract class LivingEntityMixin extends Entity implements IInventoryAcce
 				if (!world.isRemote && !this.dropInventory.isEmpty()
 						&& (world.getBlockState(blockPos).hasOpaqueCollisionShape(world, blockPos)
 								|| world.getBlockState(blockPos2).hasOpaqueCollisionShape(world, blockPos2) || this.isChild()
-								|| (RPGZConfig.drop_unlooted.get() && this.deathTime > RPGZConfig.drop_after_ticks.get()))) {
+								|| (RPGZConfig.drop_unlooted.get() && this.deathTime > RPGZConfig.drop_after_ticks.get()))
+					            || this.getType().isContained(Tags.EXCLUDED_ENTITIES)) {
 					this.dropInventory./*clearToList*/func_233543_f_().forEach(this::entityDropItem);
 				}
 

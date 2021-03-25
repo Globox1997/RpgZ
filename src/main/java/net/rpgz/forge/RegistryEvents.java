@@ -1,5 +1,6 @@
 package net.rpgz.forge;
 
+import net.minecraft.entity.EntityType;
 import net.minecraft.item.Item;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
@@ -21,5 +22,10 @@ public class RegistryEvents
 	@SubscribeEvent
 	public static void registerItems(final RegistryEvent.Register<Item> event) {
 		Tags.RARE_ITEMS = ForgeTagHandler.makeWrapperTag(event.getRegistry(), new ResourceLocation("rpgz", "rare_items"));
+	}
+	
+	@SubscribeEvent
+	public static void registerEntity(final RegistryEvent.Register<EntityType<?>> event) {
+		Tags.EXCLUDED_ENTITIES = ForgeTagHandler.makeWrapperTag(event.getRegistry(), new ResourceLocation("rpgz", "excluded_entities"));
 	}
 }
