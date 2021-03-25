@@ -19,6 +19,7 @@ import net.minecraft.util.EntityPredicates;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.rpgz.access.IInventoryAccess;
+import net.rpgz.forge.config.RPGZConfig;
 
 @Mixin(HopperTileEntity.class)
 public abstract class HopperBlockEntityMixin {
@@ -26,7 +27,7 @@ public abstract class HopperBlockEntityMixin {
 
     @Inject(method = "Lnet/minecraft/tileentity/HopperTileEntity;pullItems(Lnet/minecraft/tileentity/IHopper;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/tileentity/HopperTileEntity;getCaptureItems(Lnet/minecraft/tileentity/IHopper;)Ljava/util/List;"), cancellable = true)
     private static void extractMixin(IHopper hopper, CallbackInfoReturnable<Boolean> info) {
-        if (/*RPGZConfig.hopper_extracting.get()*/true) {
+        if (RPGZConfig.hopper_extracting.get()) {
             ticking++;
             if (ticking >= 20) {
                 BlockPos pos = new BlockPos(hopper.getXPos(), hopper.getYPos(), hopper.getZPos());
