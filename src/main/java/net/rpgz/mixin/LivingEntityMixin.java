@@ -134,7 +134,8 @@ public abstract class LivingEntityMixin extends Entity implements IInventoryAcce
 						&& (world.getBlockState(blockPos).hasOpaqueCollisionShape(world, blockPos)
 								|| world.getBlockState(blockPos2).hasOpaqueCollisionShape(world, blockPos2) || this.isChild()
 								|| (RPGZConfig.drop_unlooted.get() && this.deathTime > RPGZConfig.drop_after_ticks.get()))
-					            || this.getType().isContained(Tags.EXCLUDED_ENTITIES)) {
+								|| this.getType().isContained(Tags.EXCLUDED_ENTITIES)
+								|| RPGZConfig.excluded_entities.get().contains(this.getType().toString().replace("entity.", ""))) {
 					this.dropInventory./*clearToList*/func_233543_f_().forEach(this::entityDropItem);
 				}
 

@@ -32,7 +32,6 @@ public abstract class HopperBlockEntityMixin {
             if (ticking >= 20) {
                 BlockPos pos = new BlockPos(hopper.getXPos(), hopper.getYPos(), hopper.getZPos());
                 AxisAlignedBB box = new AxisAlignedBB(pos).expand(0.0D, 1.0D, 0.0D);
-                System.out.println(box);
                 List<LivingEntity> list = hopper.getWorld().getEntitiesWithinAABB(LivingEntity.class, box,
                         EntityPredicates.NOT_SPECTATING);
                 if (!list.isEmpty()) {
