@@ -4,10 +4,13 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.At;
 
+import net.fabricmc.api.Environment;
+import net.fabricmc.api.EnvType;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 
+@Environment(EnvType.CLIENT)
 @Mixin(ClientWorld.class)
 public abstract class ClientWorldMixin {
 

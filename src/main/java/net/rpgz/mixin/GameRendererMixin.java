@@ -6,6 +6,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.At;
 
+import net.fabricmc.api.Environment;
+import net.fabricmc.api.EnvType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.entity.Entity;
@@ -17,6 +19,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 
+@Environment(EnvType.CLIENT)
 @Mixin(GameRenderer.class)
 public class GameRendererMixin {
   @Shadow
