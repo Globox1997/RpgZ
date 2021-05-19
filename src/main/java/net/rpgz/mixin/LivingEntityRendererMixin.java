@@ -5,11 +5,11 @@ import java.util.List;
 import com.google.common.collect.Lists;
 
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.At;
 
 import net.fabricmc.api.EnvType;
@@ -23,59 +23,9 @@ import net.minecraft.client.render.entity.feature.FeatureRendererContext;
 import net.minecraft.client.render.entity.model.EntityModel;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.LivingEntity;
-// import net.minecraft.entity.mob.CaveSpiderEntity;
-// import net.minecraft.entity.mob.ElderGuardianEntity;
-// import net.minecraft.entity.mob.EndermiteEntity;
-// import net.minecraft.entity.mob.GuardianEntity;
-// import net.minecraft.entity.mob.PathAwareEntity;
-// import net.minecraft.entity.mob.SpiderEntity;
-// import net.minecraft.entity.passive.CatEntity;
-// import net.minecraft.entity.passive.DolphinEntity;
-// import net.minecraft.entity.passive.FishEntity;
-// import net.minecraft.entity.player.PlayerEntity;
-// import net.minecraft.particle.ParticleTypes;
-// import net.minecraft.util.Formatting;
-// import net.minecraft.util.Identifier;
-// import net.minecraft.util.math.Box;
-// import net.minecraft.util.math.Direction;
-// import net.minecraft.util.math.MathHelper;
-// import net.minecraft.util.math.Vec3d;
 
-// import net.minecraft.client.render.entity.model.BlazeEntityModel;
-// import net.minecraft.client.render.entity.SpiderEntityRenderer;
-// import net.minecraft.client.render.entity.model.ZombieEntityModel;
-// import net.minecraft.client.render.entity.model.GuardianEntityModel;
-// import net.minecraft.client.render.entity.model.HorseEntityModel;
-// import net.minecraft.client.render.entity.model.ParrotEntityModel;
-// import net.minecraft.client.render.entity.model.ChickenEntityModel;
-// import net.minecraft.client.render.entity.model.SquidEntityModel;
-// import net.minecraft.client.render.entity.SquidEntityRenderer;
-// import net.minecraft.client.render.entity.model.PiglinEntityModel;
-// import net.minecraft.client.render.entity.model.PlayerEntityModel;
-// import net.minecraft.entity.mob.BlazeEntity;
-// import net.minecraft.entity.mob.VindicatorEntity;
-// import net.minecraft.entity.player.PlayerEntity;
-// import net.minecraft.entity.mob.EvokerEntity;
-// import net.minecraft.entity.passive.HorseEntity;
-// import net.minecraft.entity.passive.FishEntity;
-// import net.minecraft.entity.passive.ChickenEntity;
-// import net.minecraft.entity.passive.VillagerEntity;
-// import net.minecraft.entity.mob.PiglinEntity;
-// import net.minecraft.entity.mob.FlyingEntity;
-// import net.minecraft.entity.mob.GhastEntity;
-// import net.minecraft.entity.mob.ZombieEntity;
-
-// import net.minecraft.entity.passive.StriderEntity;
-// import net.minecraft.entity.passive.BeeEntity;
-// import net.minecraft.entity.passive.ParrotEntity;
-// import net.minecraft.entity.mob.GuardianEntity;
-// import net.minecraft.entity.mob.EndermanEntity;
-// import net.minecraft.entity.player.PlayerEntity;
-// import net.minecraft.entity.mob.PiglinBrain;
-// import net.minecraft.advancement.Advancement;
-
-@Mixin(LivingEntityRenderer.class)
 @Environment(EnvType.CLIENT)
+@Mixin(LivingEntityRenderer.class)
 public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extends EntityModel<T>>
     extends EntityRenderer<T> implements FeatureRendererContext<T, M> {
 
@@ -89,12 +39,61 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
     this.model = model;
   }
 
-  @Overwrite
-  public static int getOverlay(LivingEntity entity, float whiteOverlayProgress) {
-    return OverlayTexture.packUv(OverlayTexture.getU(whiteOverlayProgress), OverlayTexture.getV(entity.hurtTime > 0));
+  @Inject(method = "getOverlay", at = @At("HEAD"), cancellable = true)
+  private static void getOverlayMixin(LivingEntity entity, float whiteOverlayProgress,
+      CallbackInfoReturnable<Integer> info) {
+    info.setReturnValue(
+        OverlayTexture.packUv(OverlayTexture.getU(whiteOverlayProgress), OverlayTexture.getV(entity.hurtTime > 0)));
   }
+  
+  // Check for block next to the mob before turning to the side
+  //   @Redirect(method = "setupTransforms", at = @At(value = "INVOKE",target = "Lnet/minecraft/util/math/MathHelper;sqrt(F)F"))
+  // public float testMixin(float f,LivingEntity livingEntity, MatrixStack matrices, float a, float b, float c) {
+  //   // b maybe winkel
+  //   if(livingEntity.deathTime == 1){
+  //     Box box = livingEntity.getBoundingBox();
+  //     box.expand(livingEntity.getRotationVecClient().x, livingEntity.getRotationVecClient().y, livingEntity.getRotationVecClient().z);
+  //    // box.
+  //     BlockPos blockPos = new BlockPos(box.minX + 0.001D, box.minY + 0.001D, box.minZ + 0.001D).up();
+  //     BlockPos blockPos2 = new BlockPos(box.maxX - 0.001D, box.maxY - 0.001D, box.maxZ - 0.001D);
+  //     System.out.println(livingEntity.getRotationVecClient().z+"::"+box.getZLength()+"::"+livingEntity.world.getBlockState(blockPos)+"::"+livingEntity.world.getBlockState(blockPos2)+"::"+blockPos);
+  //   //  this.setBoundingBox(newBoundingBox.offset(this.getRotationVector(0F, this.bodyYaw).rotateY(-30.0F)));
+  //   }
+  //   //System.out.println(f+":"+a+":"+b+":"+c);
 
-  @Inject(method = "setupTransforms", at = @At("HEAD"), cancellable = true)
+  //   // world.getBlockState(blockPos).isFullCube(world, blockPos)
+  //   // if(){
+
+  //   // }
+  //   return MathHelper.sqrt(f);
+  // }
+  //FLnet/minecraft/entity/LivingEntity;Lnet/minecraft/client/util/math/MatrixStack;FFF
+
+
+
+  //net/minecraft/client/util/math/MatrixStack.multiply (Lnet/minecraft/util/math/Quaternion;)V
+  // @Redirect(method = "setupTransforms", at = @At(value = "INVOKE",target = "Lnet/minecraft/client/util/math/MatrixStack;multiply(Lnet/minecraft/util/math/Quaternion;)V"))
+  // public void testMixin(MatrixStack matrices, Quaternion quaternion) {
+
+  //   float f = ((float)entity.deathTime + tickDelta - 1.0F) / 20.0F * 1.6F;
+  //   f = MathHelper.sqrt(f);
+  //   if (f > 1.0F) {
+  //      f = 1.0F;
+  //   }
+  //   matrices.multiply(Vector3f.POSITIVE_Z.getDegreesQuaternion(f * this.getLyingAngle(entity)));
+  //     }
+  //Lnet/minecraft/util/math/MathHelper;sqrt(F)F
+  //Lnet/minecraft/client/util/math/MatrixStack;multiply(Lnet/minecraft/util/math/Quaternion;)V
+
+  // @ModifyVariable(method = "setupTransforms", at = @At(value = "INVOKE",target = "Lnet/minecraft/util/math/MathHelper;sqrt(F)F",shift = Shift.AFTER),ordinal = 3) //ordinal = 3
+  // public float testMixin(float original) {
+  //  // System.out.println(original);
+  //   return 3.0F;
+  //     }
+
+
+
+  @Inject(method = "setupTransforms", at = @At("HEAD"))
   public void setupTransformsMixin(T entity, MatrixStack matrices, float animationProgress, float bodyYaw,
       float tickDelta, CallbackInfo info) {
     if (entity.deathTime > 0) {
@@ -109,10 +108,9 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
       }
       matrices.translate(0.0D, (double) ((entity.getWidth() / 4.0D) * f) * lyinganglebonus, 0.0D);
       if (entity.isBaby()) {
-        matrices.translate(-(double) ((entity.getHeight() / 2) * f), 0.0D, // (double) -((entity.getHeight()) * f) *
-            // lyinganglebonus
+         // (double) -((entity.getHeight()) * f) * lyinganglebonus
+        matrices.translate(-(double) ((entity.getHeight() / 2) * f), 0.0D,
             0.0D);
-
       }
     }
   }
@@ -126,12 +124,11 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
       return false;
   }
 
-  @Overwrite
-  public float getAnimationProgress(T entity, float tickDelta) {
+  @Inject(method = "getAnimationProgress", at = @At("HEAD"), cancellable = true)
+  public void getAnimationProgress(T entity, float tickDelta, CallbackInfoReturnable<Float> info) {
     if (entity.isDead()) {
-      return 0.0F;
-    } else
-      return (float) entity.age + tickDelta;
+      info.setReturnValue(0.0F);
+    }
   }
 
   @Shadow
