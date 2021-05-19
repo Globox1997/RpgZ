@@ -6,5 +6,6 @@
   "text.autoconfig.rpgz.option.despawn_corps_after_ticks": "Ticks before corps despawn",
   "text.autoconfig.rpgz.option.despawn_immediately_when_empty": "Despawn corps immediately when empty",
   "text.autoconfig.rpgz.option.hopper_extracting": "Allow hopper to extract items",
-  "text.autoconfig.rpgz.option.excluded_entities": "Exclude entities by name modid:mobname"
+  "text.autoconfig.rpgz.option.excluded_entities": "Exclude entities by name modid:mobname",
+  "text.autoconfig.rpgz.option.surfacing_in_water": "Surfacing in water"
 }

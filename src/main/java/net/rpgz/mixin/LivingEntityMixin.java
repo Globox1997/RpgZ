@@ -32,6 +32,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.World;
 import net.rpgz.access.InventoryAccess;
 import net.rpgz.config.Config;
@@ -56,39 +57,36 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
 
   @Inject(method = "tickMovement", at = @At("HEAD"), cancellable = true)
   private void tickMovementMixin(CallbackInfo info) {
-
-    // // System.out.print("yaw:" + this.yaw + "bodyyaw:" + this.bodyYaw);
-
-    Entity entity = this;
-    LivingEntity livingEntity = (LivingEntity) entity;
+    LivingEntity livingEntity = (LivingEntity) (Object) this;
     if (this.deathTime > 19 && livingEntity instanceof MobEntity) {
-
-      if (this.world.getBlockState(this.getBlockPos()).isAir()) {
+      Box box = this.getBoundingBox();
+      BlockPos blockPos = new BlockPos(box.getCenter().getX(), box.minY, box.getCenter().getZ());
+      if (this.world.getBlockState(blockPos).isAir()) {
         if (livingEntity instanceof FlyingEntity) {
           this.setPos(this.getX(), this.getY() - 0.25D, this.getZ());
-        } else if (!this.onGround) {
-          if (this.getVelocity().y > 0) {
-            this.setPos(this.getX(), this.getY() - this.getVelocity().y, this.getZ());
-          } else if (this.getVelocity().y < 0) {
-            this.setPos(this.getX(), this.getY() + this.getVelocity().y, this.getZ());
-          } else {
-            this.setPos(this.getX(), this.getY() - 0.1D, this.getZ());
-          }
-
+        } else if (this.getVelocity().y > 0) {
+          this.setPos(this.getX(), this.getY() - (this.getVelocity().y > 0.8D ? 0.8D : this.getVelocity().y),
+              this.getZ());
+        } else if (this.getVelocity().y < 0) {
+          this.setPos(this.getX(), this.getY() + (this.getVelocity().y < -0.8D ? -0.8D : this.getVelocity().y)
+              + (this.getVelocity().y > -0.2D ? -0.4D : 0.0D), this.getZ());
+        } else {
+          this.setPos(this.getX(), this.getY() - 0.1D, this.getZ());
         }
-      } else if (this.world.containsFluid(this.getBoundingBox().offset(0.0D,
-          -this.getBoundingBox().getYLength() + (this.getBoundingBox().getYLength() / 5), 0.0D))) {
-        // if (livingEntity instanceof WaterCreatureEntity) {
-        // double fluidHeight = this.getFluidHeight(FluidTags.WATER);
-        // if (fluidHeight > 0.0D) { // livingEntity.isTouchingWater() &&
-        // this.setPos(this.getX(), this.getY() + 0.1D, this.getZ());
-        // }
-        // } else
-        if (this.world.getBlockState(this.getBlockPos()).getFluidState().isIn(FluidTags.LAVA)
+      } else
+      // Water floating
+      if (this.world.containsFluid(box.offset(0.0D, box.getYLength(), 0.0D))) {
+        if (Config.CONFIG.surfacing_in_water) {
+          this.setPos(this.getX(), this.getY() + 0.03D, this.getZ());
+        }
+
+        BlockPos newBlockPos = new BlockPos(box.getCenter().getX(), box.maxY, box.getCenter().getZ());
+        if (this.world.getBlockState(newBlockPos).getFluidState().isIn(FluidTags.LAVA)
             && this.canWalkOnFluid(Fluids.LAVA)) {
-          this.setPos(this.getX(), this.getY() + 0.1D, this.getZ());
-        } else if (!this.onGround) {
-          this.setPos(this.getX(), this.getY() - 0.06D, this.getZ());
+          this.setPos(this.getX(), this.getY() + 0.03D, this.getZ());
+        } else if (this.world.containsFluid(box.offset(0.0D, -box.getYLength() + (box.getYLength() / 5), 0.0D))
+            && !Config.CONFIG.surfacing_in_water) {
+          this.setPos(this.getX(), this.getY() - 0.05D, this.getZ());
         }
       }
       info.cancel();
@@ -101,7 +99,6 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
     ++this.deathTime;
 
     if (this.isOnFire() && this.deathTime == 1) {
-      // this.setFireTicks(0);
       this.extinguish();
     }
     if (this.getVehicle() != null) {
@@ -126,16 +123,38 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
       // this.checkBlockCollision(); //Doesnt solve problem
       // if (this.isInsideWall()) {} // Doenst work
 
-      // entity.adventurez.brown_fungus example for another mod printing when
-      // this.getType().toString() is used
       Box box = this.getBoundingBox();
       BlockPos blockPos = new BlockPos(box.minX + 0.001D, box.minY + 0.001D, box.minZ + 0.001D).up();
       BlockPos blockPos2 = new BlockPos(box.maxX - 0.001D, box.maxY - 0.001D, box.maxZ - 0.001D);
+
+      // Older method, might be better?
+      // if (this.world.isRegionLoaded(blockPos, blockPos2)) {
+      // if (!world.isClient && !this.inventory.isEmpty()
+      // && (world.getBlockState(blockPos).isFullCube(world, blockPos)
+      // || world.getBlockState(blockPos2).isFullCube(world, blockPos2) ||
+      // this.isBaby()
+      // || (Config.CONFIG.drop_unlooted && this.deathTime >
+      // Config.CONFIG.drop_after_ticks))
+      // || this.getType().isIn(Tags.EXCLUDED_ENTITIES)
+      // ||
+      // Config.CONFIG.excluded_entities.contains(this.getType().toString().replace("entity.",
+      // ""))) {
+      // this.inventory.clearToList().forEach(this::dropStack);
+      // }
+      // }
+
+      // New method to check if inside block
+      Box checkBox = new Box(box.maxX, box.maxY, box.maxZ, box.maxX + 0.001D, box.maxY + 0.001D, box.maxZ + 0.001D);
+      Box checkBoxTwo = new Box(box.minX, box.maxY, box.minZ, box.minX + 0.001D, box.maxY + 0.001D, box.minZ + 0.001D);
+      Box checkBoxThree = new Box(box.maxX - (box.getXLength() / 3D), box.maxY, box.maxZ - (box.getZLength() / 3D),
+          box.maxX + 0.001D - (box.getXLength() / 3D), box.maxY + 0.001D, box.maxZ + 0.001D - (box.getZLength() / 3D));
       if (this.world.isRegionLoaded(blockPos, blockPos2)) {
         if (!world.isClient && !this.inventory.isEmpty()
-            && (world.getBlockState(blockPos).isFullCube(world, blockPos)
-                || world.getBlockState(blockPos2).isFullCube(world, blockPos2) || this.isBaby()
-                || (Config.CONFIG.drop_unlooted && this.deathTime > Config.CONFIG.drop_after_ticks))
+            && (((!this.world.getBlockCollisions(this, checkBox).allMatch(VoxelShape::isEmpty)
+                || !this.world.getBlockCollisions(this, checkBoxThree).allMatch(VoxelShape::isEmpty))
+                && (!this.world.getBlockCollisions(this, checkBoxTwo).allMatch(VoxelShape::isEmpty)
+                    || !this.world.getBlockCollisions(this, checkBoxThree).allMatch(VoxelShape::isEmpty)))
+                || this.isBaby() || (Config.CONFIG.drop_unlooted && this.deathTime > Config.CONFIG.drop_after_ticks))
             || this.getType().isIn(Tags.EXCLUDED_ENTITIES)
             || Config.CONFIG.excluded_entities.contains(this.getType().toString().replace("entity.", ""))) {
 
