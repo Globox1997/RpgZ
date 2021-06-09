@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "rpgz",
-  "version": "0.4.7",
+  "version": "${version}",
   "name": "RPGZ",
   "description": "Rpg Style Looting",
   "authors": [
@@ -29,7 +29,7 @@
   "depends": {
     "fabricloader": ">=0.7.4",
     "fabric": "*",
-    "minecraft": "1.16.x"
+    "minecraft": "1.17.x"
   },
   "accessWidener": "rpgz.aw"
 }

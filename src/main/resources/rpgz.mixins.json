@@ -7,12 +7,12 @@
     "LivingEntityMixin",
     "MobEntityMixin",
     "HopperBlockEntityMixin",
-    "misc/BlazeEntityMixin",
-    "misc/EndermanEntityMixin",
-    "misc/PhantomEntityMixin",
-    "misc/SquidEntityMixin",
-    "misc/ChickenEntityMixin",
-    "misc/SheepEntityMixin"
+    "misc.BlazeEntityMixin",
+    "misc.EndermanEntityMixin",
+    "misc.PhantomEntityMixin",
+    "misc.SquidEntityMixin",
+    "misc.ChickenEntityMixin",
+    "misc.SheepEntityMixin"
   ],
   "client": [
     "LivingEntityRendererMixin",
@@ -20,7 +20,7 @@
     "ClientWorldMixin",
     "GameRendererMixin",
     "EntityRendererMixin",
-    "misc/SquidEntityModelMixin"
+    "misc.SquidEntityModelMixin"
   ],
   "injectors": {
     "defaultRequire": 1

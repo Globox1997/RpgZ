@@ -1,5 +1,6 @@
 package net.rpgz.mixin;
 
+import net.minecraft.world.LightType;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -25,7 +26,7 @@ public abstract class EntityRendererMixin<T extends Entity> {
             Box box = entity.getBoundingBox();
             BlockPos blockPos = new BlockPos(box.getCenter().getX(), box.maxY, box.getCenter().getZ());
             info.setReturnValue(LightmapTextureManager.pack(this.getBlockLight(entity, blockPos),
-                    this.method_27950(entity, blockPos)));
+                    this.getSkyLight(entity, blockPos)));
         }
     }
 
@@ -35,8 +36,8 @@ public abstract class EntityRendererMixin<T extends Entity> {
     }
 
     @Shadow
-    protected int method_27950(T entity, BlockPos blockPos) {
-        return 0;
+    protected int getSkyLight(T entity, BlockPos pos) {
+        return entity.world.getLightLevel(LightType.SKY, pos);
     }
 
 }

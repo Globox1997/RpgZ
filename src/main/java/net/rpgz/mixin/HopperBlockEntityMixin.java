@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -25,14 +26,14 @@ import net.rpgz.config.Config;
 public abstract class HopperBlockEntityMixin implements InventoryAccess {
     private static int ticking = 0;
 
-    @Inject(method = "Lnet/minecraft/block/entity/HopperBlockEntity;extract(Lnet/minecraft/block/entity/Hopper;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/entity/HopperBlockEntity;getInputItemEntities(Lnet/minecraft/block/entity/Hopper;)Ljava/util/List;"), cancellable = true)
-    private static void extractMixin(Hopper hopper, CallbackInfoReturnable<Boolean> info) {
+    @Inject(method = "extract(Lnet/minecraft/world/World;Lnet/minecraft/block/entity/Hopper;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/entity/HopperBlockEntity;getInputItemEntities(Lnet/minecraft/world/World;Lnet/minecraft/block/entity/Hopper;)Ljava/util/List;"), cancellable = true)
+    private static void extractMixin(World world, Hopper hopper, CallbackInfoReturnable<Boolean> info) {
         if (Config.CONFIG.hopper_extracting) {
             ticking++;
             if (ticking >= 20) {
                 BlockPos pos = new BlockPos(hopper.getHopperX(), hopper.getHopperY(), hopper.getHopperZ());
                 Box box = new Box(pos).expand(0.0D, 1.0D, 0.0D);
-                List<LivingEntity> list = hopper.getWorld().getEntitiesByClass(LivingEntity.class, box,
+                List<LivingEntity> list = world.getEntitiesByClass(LivingEntity.class, box,
                         EntityPredicates.EXCEPT_SPECTATOR);
                 if (!list.isEmpty()) {
                     Iterator<LivingEntity> iterator = list.iterator();
@@ -45,11 +46,11 @@ public abstract class HopperBlockEntityMixin implements InventoryAccess {
                                         isInventoryEmpty(((InventoryAccess) livingEntity).getInventory(), direction)
                                                 ? false
                                                 : getAvailableSlots(((InventoryAccess) livingEntity).getInventory(),
-                                                        direction).anyMatch((i) -> {
-                                                            return extract(hopper,
-                                                                    ((InventoryAccess) livingEntity).getInventory(), i,
-                                                                    direction);
-                                                        }));
+                                                direction).anyMatch((i) -> {
+                                            return extract(hopper,
+                                                    ((InventoryAccess) livingEntity).getInventory(), i,
+                                                    direction);
+                                        }));
                             }
                         }
                     }
