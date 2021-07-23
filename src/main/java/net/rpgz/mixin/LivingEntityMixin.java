@@ -30,6 +30,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.World;
@@ -56,41 +57,38 @@ public abstract class LivingEntityMixin extends Entity implements IInventoryAcce
 
 	@Inject(method = "livingTick", at = @At("HEAD"), cancellable = true)
 	private void livingTickMixin(CallbackInfo info) {
-
-		// // System.out.print("yaw:" + this.yaw + "bodyyaw:" + this.bodyYaw);
-
-		Entity entity = this;
-		LivingEntity livingEntity = (LivingEntity) entity;
+		LivingEntity livingEntity = (LivingEntity) (Object) this;
 		if (this.deathTime > 19 && livingEntity instanceof MobEntity) {
-
-			if (this.world.getBlockState(this.getPosition()).isAir()) {
+			AxisAlignedBB box = this.getBoundingBox();
+			BlockPos blockPos = new BlockPos(box.getCenter().getX(), box.minY, box.getCenter().getZ());
+			if (this.world.getBlockState(blockPos).isAir()) {
 				if (livingEntity instanceof FlyingEntity) {
 					this.setRawPosition(this.getPosX(), this.getPosY() - 0.25D, this.getPosZ());
-				} else if (!this.onGround) {
-					if (this.getMotion().y > 0) {
-						this.setRawPosition(this.getPosX(), this.getPosY() - this.getMotion().y, this.getPosZ());
-					} else if (this.getMotion().y < 0) {
-						this.setRawPosition(this.getPosX(), this.getPosY() + this.getMotion().y, this.getPosZ());
-					} else {
-						this.setRawPosition(this.getPosX(), this.getPosY() - 0.1D, this.getPosZ());
-					}
+				} else if (this.getMotion().y > 0) {
+					this.setRawPosition(this.getPosX(), this.getPosY() - (this.getMotion().y > 0.8D ? 0.8D : this.getMotion().y),
+							this.getPosZ());
+				} else if (this.getMotion().y < 0) {
+					this.setRawPosition(this.getPosX(), this.getPosY() + (this.getMotion().y < -0.8D ? -0.8D : this.getMotion().y)
+							+ (this.getMotion().y > -0.2D ? -0.4D : 0.0D), this.getPosZ());
+				} else {
+					this.setRawPosition(this.getPosX(), this.getPosY() - 0.1D, this.getPosZ());
+				}
+			} else
+				// Water floating
+				if (this.world.containsAnyLiquid(box.offset(0.0D, box.getYSize(), 0.0D))) {
+					if (RPGZConfig.surfacing_in_water.get()) {
+						this.setRawPosition(this.getPosX(), this.getPosY() + 0.03D, this.getPosZ());
 
+					}
+					BlockPos newBlockPos = new BlockPos(box.getCenter().getX(), box.maxY, box.getCenter().getZ());
+					if (this.world.getBlockState(newBlockPos).getFluidState().isTagged(FluidTags.LAVA)
+							&& this.func_230285_a_(Fluids.LAVA)) {
+						this.setRawPosition(this.getPosX(), this.getPosY() + 0.03D, this.getPosZ());
+					} else if (this.world.containsAnyLiquid(box.offset(0.0D, -box.getYSize() + (box.getYSize() / 5), 0.0D))
+							&& !RPGZConfig.surfacing_in_water.get()) {
+						this.setRawPosition(this.getPosX(), this.getPosY() - 0.05D, this.getPosZ());
+					}
 				}
-			} else if (this.world.containsAnyLiquid(this.getBoundingBox().offset(0.0D,
-					-this.getBoundingBox().getYSize() + (this.getBoundingBox().getYSize() / 5), 0.0D))) {
-				// if (livingEntity instanceof WaterCreatureEntity) {
-				// double fluidHeight = this.getFluidHeight(FluidTags.WATER);
-				// if (fluidHeight > 0.0D) { // livingEntity.isTouchingWater() &&
-				// this.setRawPosition(this.getX(), this.getY() + 0.1D, this.getZ());
-				// }
-				// } else
-				if (this.world.getBlockState(this.getPosition()).getFluidState().isTagged(FluidTags.LAVA)
-						&& this.func_230285_a_(Fluids.LAVA)) {
-					this.setRawPosition(this.getPosX(), this.getPosY() + 0.1D, this.getPosZ());
-				} else if (!this.onGround) {
-					this.setRawPosition(this.getPosX(), this.getPosY() - 0.06D, this.getPosZ());
-				}
-			}
 			info.cancel();
 		}
 
@@ -101,7 +99,6 @@ public abstract class LivingEntityMixin extends Entity implements IInventoryAcce
 		++this.deathTime;
 
 		if (this.isBurning() && this.deathTime == 1) {
-			// this.setFireTicks(0);
 			this.extinguish();
 		}
 		if (this.getRidingEntity() != null) {
@@ -129,13 +126,38 @@ public abstract class LivingEntityMixin extends Entity implements IInventoryAcce
 			AxisAlignedBB box = this.getBoundingBox();
 			BlockPos blockPos = new BlockPos(box.minX + 0.001D, box.minY + 0.001D, box.minZ + 0.001D).up();
 			BlockPos blockPos2 = new BlockPos(box.maxX - 0.001D, box.maxY - 0.001D, box.maxZ - 0.001D);
+			
+			// Older method, might be better?
+		      // if (this.world.isRegionLoaded(blockPos, blockPos2)) {
+		      // if (!world.isClient && !this.inventory.isEmpty()
+		      // && (world.getBlockState(blockPos).isFullCube(world, blockPos)
+		      // || world.getBlockState(blockPos2).isFullCube(world, blockPos2) ||
+		      // this.isBaby()
+		      // || (Config.CONFIG.drop_unlooted && this.deathTime >
+		      // Config.CONFIG.drop_after_ticks))
+		      // || this.getType().isIn(Tags.EXCLUDED_ENTITIES)
+		      // ||
+		      // Config.CONFIG.excluded_entities.contains(this.getType().toString().replace("entity.",
+		      // ""))) {
+		      // this.inventory.clearToList().forEach(this::dropStack);
+		      // }
+		      // }
+
+		      // New method to check if inside block
+			AxisAlignedBB checkBox = new AxisAlignedBB(box.maxX, box.maxY, box.maxZ, box.maxX + 0.001D, box.maxY + 0.001D, box.maxZ + 0.001D);
+			AxisAlignedBB checkBoxTwo = new AxisAlignedBB(box.minX, box.maxY, box.minZ, box.minX + 0.001D, box.maxY + 0.001D, box.minZ + 0.001D);
+			AxisAlignedBB checkBoxThree = new AxisAlignedBB(box.maxX - (box.getXSize() / 3D), box.maxY, box.maxZ - (box.getZSize() / 3D),
+		          box.maxX + 0.001D - (box.getXSize() / 3D), box.maxY + 0.001D, box.maxZ + 0.001D - (box.getZSize() / 3D));
+			
 			if (this.world.isAreaLoaded(blockPos, blockPos2)) {
 				if (!world.isRemote && !this.dropInventory.isEmpty()
-						&& (world.getBlockState(blockPos).hasOpaqueCollisionShape(world, blockPos)
-								|| world.getBlockState(blockPos2).hasOpaqueCollisionShape(world, blockPos2) || this.isChild()
-								|| (RPGZConfig.drop_unlooted.get() && this.deathTime > RPGZConfig.drop_after_ticks.get()))
-								|| this.getType().isContained(Tags.EXCLUDED_ENTITIES)
-								|| RPGZConfig.excluded_entities.get().contains(this.getType().toString().replace("entity.", ""))) {
+						&& (((!this.world.getBlockCollisionShapes(this, checkBox).allMatch(VoxelShape::isEmpty)
+				                || !this.world.getBlockCollisionShapes(this, checkBoxThree).allMatch(VoxelShape::isEmpty))
+				                && (!this.world.getBlockCollisionShapes(this, checkBoxTwo).allMatch(VoxelShape::isEmpty)
+				                    || !this.world.getBlockCollisionShapes(this, checkBoxThree).allMatch(VoxelShape::isEmpty)))
+				                || this.isChild() || (RPGZConfig.drop_unlooted.get() && this.deathTime > RPGZConfig.drop_after_ticks.get()))
+						|| this.getType().isContained(Tags.EXCLUDED_ENTITIES)
+						|| RPGZConfig.excluded_entities.get().contains(this.getType().toString().replace("entity.", ""))) {
 					this.dropInventory./*clearToList*/func_233543_f_().forEach(this::entityDropItem);
 				}
 

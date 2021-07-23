@@ -10,6 +10,7 @@ public class RPGZConfig {
 	public static ForgeConfigSpec.ConfigValue<Integer> drop_after_ticks;
 	public static ForgeConfigSpec.ConfigValue<Integer> despawn_corps_after_ticks;
 	public static ForgeConfigSpec.BooleanValue despawn_immediately_when_empty; 
+	public static ForgeConfigSpec.BooleanValue surfacing_in_water; 
 	public static ForgeConfigSpec.BooleanValue hopper_extracting; 
 	public static ForgeConfigSpec.ConfigValue<List<String>> excluded_entities;
 	
@@ -25,6 +26,9 @@ public class RPGZConfig {
 		
 		despawn_immediately_when_empty = common
 				.define(category+"despawn_immediately_when_empty", true);
+		
+		surfacing_in_water = common
+				.define(category+"surfacing_in_water", true);
 		
 		drop_unlooted = common
 				.define(category+"drop_unlooted", false);
