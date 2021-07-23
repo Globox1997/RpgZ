@@ -7,8 +7,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 @Mixin(ClientWorld.class)
+@OnlyIn(Dist.CLIENT)
 public abstract class ClientWorldMixin {
 
   @Redirect(method = "Lnet/minecraft/client/world/ClientWorld;updateEntity(Lnet/minecraft/entity/Entity;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;tick()V"))

@@ -16,8 +16,11 @@ import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.EntityRayTraceResult;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.vector.Vector3d;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 @Mixin(GameRenderer.class)
+@OnlyIn(Dist.CLIENT)
 public class GameRendererMixin {
   @Shadow
   private final Minecraft mc;
