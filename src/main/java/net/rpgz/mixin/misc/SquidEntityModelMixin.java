@@ -16,6 +16,7 @@ public abstract class SquidEntityModelMixin<T extends Entity> extends SegmentedM
   @Shadow
   private final ModelRenderer[] legs = new ModelRenderer[8];
 
+  //I guess uneccessary
   @Inject(method = "setRotationAngles", at = @At(value = "RETURN"), cancellable = true)
   public void setRotationAnglesMixin(T entity, float limbAngle, float limbDistance, float animationProgress, float headYaw,
       float headPitch, CallbackInfo info) {
@@ -23,8 +24,8 @@ public abstract class SquidEntityModelMixin<T extends Entity> extends SegmentedM
       // ModelRenderer[] var7 = this.legs;
       // int var8 = var7.length;
       // for (int var9 = 0; var9 < var8; ++var9) {
-      //   ModelRenderer modelPart = var7[var9];
-      //   modelPart.pitch = 0.0F;
+      // ModelRenderer modelPart = var7[var9];
+      // modelPart.pitch = 0.0F;
       // }
     }
   }
