@@ -25,8 +25,7 @@ public abstract class EntityRendererMixin<T extends Entity> {
         if (entity.isLiving() && ((LivingEntity) entity).isDead()) {
             Box box = entity.getBoundingBox();
             BlockPos blockPos = new BlockPos(box.getCenter().getX(), box.maxY, box.getCenter().getZ());
-            info.setReturnValue(LightmapTextureManager.pack(this.getBlockLight(entity, blockPos),
-                    this.getSkyLight(entity, blockPos)));
+            info.setReturnValue(LightmapTextureManager.pack(this.getBlockLight(entity, blockPos), this.getSkyLight(entity, blockPos)));
         }
     }
 

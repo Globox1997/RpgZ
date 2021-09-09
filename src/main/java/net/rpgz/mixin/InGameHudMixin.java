@@ -2,7 +2,6 @@ package net.rpgz.mixin;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;
@@ -50,8 +49,7 @@ public abstract class InGameHudMixin extends DrawableHelper {
                     int scaledHeight = this.client.getWindow().getScaledHeight();
                     RenderSystem.setShaderTexture(0, new Identifier("rpgz:textures/sprite/loot_bag.png"));
                     RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-                    DrawableHelper.drawTexture(matrixStack, (scaledWidth / 2), (scaledHeight / 2) - 16, 0.0F, 0.0F, 16, 16, 16,
-                            16);
+                    DrawableHelper.drawTexture(matrixStack, (scaledWidth / 2), (scaledHeight / 2) - 16, 0.0F, 0.0F, 16, 16, 16, 16);
                 }
             }
         }

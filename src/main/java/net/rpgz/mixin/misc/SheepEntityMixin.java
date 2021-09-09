@@ -21,7 +21,7 @@ public abstract class SheepEntityMixin extends AnimalEntity {
         super.dropLoot(source, causedByPlayer);
         if ((Object) this instanceof SheepEntity) {
             SheepEntity sheepEntity = (SheepEntity) (Object) this;
-            ((InventoryAccess) this).addingInventoryItems(new ItemStack(sheepEntity.DROPS.get(sheepEntity.getColor())));
+            ((InventoryAccess) this).addingInventoryItems(new ItemStack(SheepEntity.DROPS.get(sheepEntity.getColor())));
         }
 
     }

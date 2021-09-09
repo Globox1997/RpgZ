@@ -13,16 +13,16 @@ import net.minecraft.world.World;
 @Mixin(SquidEntity.class)
 public abstract class SquidEntityMixin extends WaterCreatureEntity {
 
-  public SquidEntityMixin(EntityType<? extends WaterCreatureEntity> entityType, World world) {
-    super(entityType, world);
-  }
-
-  @Inject(method = "tickMovement", at = @At(value = "HEAD"), cancellable = true)
-  public void tickMovementMixinSquid(CallbackInfo info) {
-    if (this.isDead()) {
-      super.tickMovement();
-      info.cancel();
+    public SquidEntityMixin(EntityType<? extends WaterCreatureEntity> entityType, World world) {
+        super(entityType, world);
     }
-  }
+
+    @Inject(method = "tickMovement", at = @At(value = "HEAD"), cancellable = true)
+    public void tickMovementMixinSquid(CallbackInfo info) {
+        if (this.isDead()) {
+            super.tickMovement();
+            info.cancel();
+        }
+    }
 
 }

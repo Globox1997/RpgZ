@@ -4,7 +4,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.At;
 
@@ -66,30 +65,26 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
                 if (livingEntity instanceof FlyingEntity) {
                     this.setPos(this.getX(), this.getY() - 0.25D, this.getZ());
                 } else if (this.getVelocity().y > 0) {
-                    this.setPos(this.getX(), this.getY() - (this.getVelocity().y > 0.8D ? 0.8D : this.getVelocity().y),
-                            this.getZ());
+                    this.setPos(this.getX(), this.getY() - (this.getVelocity().y > 0.8D ? 0.8D : this.getVelocity().y), this.getZ());
                 } else if (this.getVelocity().y < 0) {
-                    this.setPos(this.getX(), this.getY() + (this.getVelocity().y < -0.8D ? -0.8D : this.getVelocity().y)
-                            + (this.getVelocity().y > -0.2D ? -0.4D : 0.0D), this.getZ());
+                    this.setPos(this.getX(), this.getY() + (this.getVelocity().y < -0.8D ? -0.8D : this.getVelocity().y) + (this.getVelocity().y > -0.2D ? -0.4D : 0.0D), this.getZ());
                 } else {
                     this.setPos(this.getX(), this.getY() - 0.1D, this.getZ());
                 }
             } else
-                // Water floating
-                if (this.world.containsFluid(box.offset(0.0D, box.getYLength(), 0.0D))) {
-                    if (Config.CONFIG.surfacing_in_water) {
-                        this.setPos(this.getX(), this.getY() + 0.03D, this.getZ());
-                    }
-
-                    BlockPos newBlockPos = new BlockPos(box.getCenter().getX(), box.maxY, box.getCenter().getZ());
-                    if (this.world.getBlockState(newBlockPos).getFluidState().isIn(FluidTags.LAVA)
-                            && this.canWalkOnFluid(Fluids.LAVA)) {
-                        this.setPos(this.getX(), this.getY() + 0.03D, this.getZ());
-                    } else if (this.world.containsFluid(box.offset(0.0D, -box.getYLength() + (box.getYLength() / 5), 0.0D))
-                            && !Config.CONFIG.surfacing_in_water) {
-                        this.setPos(this.getX(), this.getY() - 0.05D, this.getZ());
-                    }
+            // Water floating
+            if (this.world.containsFluid(box.offset(0.0D, box.getYLength(), 0.0D))) {
+                if (Config.CONFIG.surfacing_in_water) {
+                    this.setPos(this.getX(), this.getY() + 0.03D, this.getZ());
                 }
+
+                BlockPos newBlockPos = new BlockPos(box.getCenter().getX(), box.maxY, box.getCenter().getZ());
+                if (this.world.getBlockState(newBlockPos).getFluidState().isIn(FluidTags.LAVA) && this.canWalkOnFluid(Fluids.LAVA)) {
+                    this.setPos(this.getX(), this.getY() + 0.03D, this.getZ());
+                } else if (this.world.containsFluid(box.offset(0.0D, -box.getYLength() + (box.getYLength() / 5), 0.0D)) && !Config.CONFIG.surfacing_in_water) {
+                    this.setPos(this.getX(), this.getY() - 0.05D, this.getZ());
+                }
+            }
             info.cancel();
         }
 
@@ -110,13 +105,10 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
         }
 
         if (this.deathTime >= 20) {
-            Box newBoundingBox = new Box(this.getX() - (this.getWidth() / 3.0F), this.getY() - (this.getWidth() / 3.0F),
-                    this.getZ() - (this.getWidth() / 3.0F), this.getX() + (this.getWidth() / 1.5F),
-                    this.getY() + (this.getWidth() / 1.5F), this.getZ() + (this.getWidth() / 1.5F));
-            if ((this.getDimensions(EntityPose.STANDING).height < 1.0F
-                    && this.getDimensions(EntityPose.STANDING).width < 1.0F)
-                    || (this.getDimensions(EntityPose.STANDING).width
-                    / this.getDimensions(EntityPose.STANDING).height) > 1.395F) {
+            Box newBoundingBox = new Box(this.getX() - (this.getWidth() / 3.0F), this.getY() - (this.getWidth() / 3.0F), this.getZ() - (this.getWidth() / 3.0F),
+                    this.getX() + (this.getWidth() / 1.5F), this.getY() + (this.getWidth() / 1.5F), this.getZ() + (this.getWidth() / 1.5F));
+            if ((this.getDimensions(EntityPose.STANDING).height < 1.0F && this.getDimensions(EntityPose.STANDING).width < 1.0F)
+                    || (this.getDimensions(EntityPose.STANDING).width / this.getDimensions(EntityPose.STANDING).height) > 1.395F) {
                 this.setBoundingBox(newBoundingBox);
             } else {
                 this.setBoundingBox(newBoundingBox.offset(this.getRotationVector(0F, this.bodyYaw).rotateY(-30.0F)));
@@ -150,17 +142,15 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
             // New method to check if inside block
             Box checkBox = new Box(box.maxX, box.maxY, box.maxZ, box.maxX + 0.001D, box.maxY + 0.001D, box.maxZ + 0.001D);
             Box checkBoxTwo = new Box(box.minX, box.maxY, box.minZ, box.minX + 0.001D, box.maxY + 0.001D, box.minZ + 0.001D);
-            Box checkBoxThree = new Box(box.maxX - (box.getXLength() / 3D), box.maxY, box.maxZ - (box.getZLength() / 3D),
-                    box.maxX + 0.001D - (box.getXLength() / 3D), box.maxY + 0.001D, box.maxZ + 0.001D - (box.getZLength() / 3D));
+            Box checkBoxThree = new Box(box.maxX - (box.getXLength() / 3D), box.maxY, box.maxZ - (box.getZLength() / 3D), box.maxX + 0.001D - (box.getXLength() / 3D), box.maxY + 0.001D,
+                    box.maxZ + 0.001D - (box.getZLength() / 3D));
             if (this.world.isRegionLoaded(blockPos, blockPos2)) {
                 if (!world.isClient && !this.inventory.isEmpty()
-                        && (((!this.world.getBlockCollisions(this, checkBox).allMatch(VoxelShape::isEmpty)
-                        || !this.world.getBlockCollisions(this, checkBoxThree).allMatch(VoxelShape::isEmpty))
-                        && (!this.world.getBlockCollisions(this, checkBoxTwo).allMatch(VoxelShape::isEmpty)
-                        || !this.world.getBlockCollisions(this, checkBoxThree).allMatch(VoxelShape::isEmpty)))
-                        || this.isBaby() || (Config.CONFIG.drop_unlooted && this.deathTime > Config.CONFIG.drop_after_ticks))
-                        || this.getType().isIn(Tags.EXCLUDED_ENTITIES)
-                        || Config.CONFIG.excluded_entities.contains(this.getType().toString().replace("entity.", ""))) {
+                        && (((!this.world.getBlockCollisions(this, checkBox).allMatch(VoxelShape::isEmpty) || !this.world.getBlockCollisions(this, checkBoxThree).allMatch(VoxelShape::isEmpty))
+                                && (!this.world.getBlockCollisions(this, checkBoxTwo).allMatch(VoxelShape::isEmpty)
+                                        || !this.world.getBlockCollisions(this, checkBoxThree).allMatch(VoxelShape::isEmpty)))
+                                || this.isBaby() || (Config.CONFIG.drop_unlooted && this.deathTime > Config.CONFIG.drop_after_ticks))
+                        || this.getType().isIn(Tags.EXCLUDED_ENTITIES) || Config.CONFIG.excluded_entities.contains(this.getType().toString().replace("entity.", ""))) {
 
                     this.inventory.clearToList().forEach(this::dropStack);
                 }
@@ -169,8 +159,7 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
             // world.getClosestPlayer(this,// 1.0D)// !=// null// || Testing purpose
         }
 
-        if ((this.deathTime >= 20 && !this.world.isClient && this.inventory.isEmpty()
-                && Config.CONFIG.despawn_immediately_when_empty)
+        if ((this.deathTime >= 20 && !this.world.isClient && this.inventory.isEmpty() && Config.CONFIG.despawn_immediately_when_empty)
                 || (this.deathTime == Config.CONFIG.despawn_corps_after_ticks)) {
             if (!this.world.isClient) { // Make sure only on server particle
                 this.despawnParticlesServer();
@@ -215,8 +204,7 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
         if (world.isClient && this.deathTime > 20) {
             return ActionResult.SUCCESS;
         } else if (!world.isClient && this.deathTime > 20 && !this.inventory.isEmpty()) {
-            player.openHandledScreen(new SimpleNamedScreenHandlerFactory(
-                    (syncId, inv, p) -> new LivingEntityScreenHandler(syncId, p.getInventory(), this.inventory), new LiteralText("")));
+            player.openHandledScreen(new SimpleNamedScreenHandlerFactory((syncId, inv, p) -> new LivingEntityScreenHandler(syncId, p.getInventory(), this.inventory), new LiteralText("")));
             return ActionResult.SUCCESS;
         } else
             return ActionResult.PASS;

@@ -33,8 +33,7 @@ public abstract class HopperBlockEntityMixin implements InventoryAccess {
             if (ticking >= 20) {
                 BlockPos pos = new BlockPos(hopper.getHopperX(), hopper.getHopperY(), hopper.getHopperZ());
                 Box box = new Box(pos).expand(0.0D, 1.0D, 0.0D);
-                List<LivingEntity> list = world.getEntitiesByClass(LivingEntity.class, box,
-                        EntityPredicates.EXCEPT_SPECTATOR);
+                List<LivingEntity> list = world.getEntitiesByClass(LivingEntity.class, box, EntityPredicates.EXCEPT_SPECTATOR);
                 if (!list.isEmpty()) {
                     Iterator<LivingEntity> iterator = list.iterator();
                     while (iterator.hasNext()) {
@@ -42,14 +41,9 @@ public abstract class HopperBlockEntityMixin implements InventoryAccess {
                         if (livingEntity.isDead()) {
                             if (((InventoryAccess) livingEntity).getInventory() != null) {
                                 Direction direction = Direction.DOWN;
-                                info.setReturnValue(
-                                        isInventoryEmpty(((InventoryAccess) livingEntity).getInventory(), direction)
-                                                ? false
-                                                : getAvailableSlots(((InventoryAccess) livingEntity).getInventory(),
-                                                direction).anyMatch((i) -> {
-                                            return extract(hopper,
-                                                    ((InventoryAccess) livingEntity).getInventory(), i,
-                                                    direction);
+                                info.setReturnValue(isInventoryEmpty(((InventoryAccess) livingEntity).getInventory(), direction) ? false
+                                        : getAvailableSlots(((InventoryAccess) livingEntity).getInventory(), direction).anyMatch((i) -> {
+                                            return extract(hopper, ((InventoryAccess) livingEntity).getInventory(), i, direction);
                                         }));
                             }
                         }

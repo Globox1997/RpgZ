@@ -7,11 +7,11 @@ import net.rpgz.tag.Tags;
 
 public class RpgzMain implements ModInitializer {
 
-  @Override
-  public void onInitialize() {
-    Config.init();
-    LootSounds.init();
-    Tags.init();
+    @Override
+    public void onInitialize() {
+        Config.init();
+        LootSounds.init();
+        Tags.init();
 
-  }
+    }
 }

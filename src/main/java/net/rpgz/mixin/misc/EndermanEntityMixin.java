@@ -12,16 +12,16 @@ import net.minecraft.world.World;
 
 @Mixin(EndermanEntity.class)
 public abstract class EndermanEntityMixin extends HostileEntity {
-  public EndermanEntityMixin(EntityType<? extends HostileEntity> entityType, World world) {
-    super(entityType, world);
-  }
-
-  @Inject(method = "tickMovement", at = @At(value = "HEAD"), cancellable = true)
-  public void tickMovementMixinEnderman(CallbackInfo info) {
-    if (this.isDead()) {
-      super.tickMovement();
-      info.cancel();
+    public EndermanEntityMixin(EntityType<? extends HostileEntity> entityType, World world) {
+        super(entityType, world);
     }
-  }
+
+    @Inject(method = "tickMovement", at = @At(value = "HEAD"), cancellable = true)
+    public void tickMovementMixinEnderman(CallbackInfo info) {
+        if (this.isDead()) {
+            super.tickMovement();
+            info.cancel();
+        }
+    }
 
 }

@@ -22,34 +22,33 @@ import net.minecraft.util.math.Vec3d;
 @Environment(EnvType.CLIENT)
 @Mixin(GameRenderer.class)
 public class GameRendererMixin {
-  @Shadow
-  private final MinecraftClient client;
+    @Shadow
+    private final MinecraftClient client;
 
-  public GameRendererMixin(MinecraftClient client) {
-    this.client = client;
-  }
-
-  @Inject(method = "updateTargetedEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/profiler/Profiler;pop()V"))
-  public void updateTargetedEntityMixin(float tickDelta, CallbackInfo info) {
-    Entity entity = this.client.getCameraEntity();
-    if (this.client.crosshairTarget.getType() == HitResult.Type.BLOCK) {
-      BlockPos pos = ((BlockHitResult) this.client.crosshairTarget).getBlockPos();
-      if (!this.client.world.getBlockState(pos).isFullCube(this.client.world, pos)) {
-        double reachDinstance = (double) this.client.interactionManager.getReachDistance();
-        Vec3d vec3d = this.client.player.getCameraPosVec(tickDelta);
-        Vec3d vec3d2 = this.client.player.getRotationVec(tickDelta);
-        Vec3d vec3d3 = vec3d.add(vec3d2.x * reachDinstance, vec3d2.y * reachDinstance, vec3d2.z * reachDinstance);
-        Box box = entity.getBoundingBox().stretch(vec3d2.multiply(reachDinstance)).expand(1.0D, 1.0D, 1.0D);
-        EntityHitResult entityHitResult = ProjectileUtil.raycast(entity, vec3d, vec3d3, box, (entityx) -> {
-          return !entityx.isSpectator() && entityx.collides();
-        }, 5D);
-        if (entityHitResult != null) {
-          this.client.crosshairTarget = entityHitResult;
-        }
-
-      }
-
+    public GameRendererMixin(MinecraftClient client) {
+        this.client = client;
     }
-  }
+
+    @Inject(method = "updateTargetedEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/profiler/Profiler;pop()V"))
+    public void updateTargetedEntityMixin(float tickDelta, CallbackInfo info) {
+        Entity entity = this.client.getCameraEntity();
+        if (this.client.crosshairTarget.getType() == HitResult.Type.BLOCK) {
+            BlockPos pos = ((BlockHitResult) this.client.crosshairTarget).getBlockPos();
+            if (!this.client.world.getBlockState(pos).isFullCube(this.client.world, pos)) {
+                double reachDinstance = (double) this.client.interactionManager.getReachDistance();
+                Vec3d vec3d = this.client.player.getCameraPosVec(tickDelta);
+                Vec3d vec3d2 = this.client.player.getRotationVec(tickDelta);
+                Vec3d vec3d3 = vec3d.add(vec3d2.x * reachDinstance, vec3d2.y * reachDinstance, vec3d2.z * reachDinstance);
+                Box box = entity.getBoundingBox().stretch(vec3d2.multiply(reachDinstance)).expand(1.0D, 1.0D, 1.0D);
+                EntityHitResult entityHitResult = ProjectileUtil.raycast(entity, vec3d, vec3d3, box, (entityx) -> {
+                    return !entityx.isSpectator() && entityx.collides();
+                }, 5D);
+                if (entityHitResult != null) {
+                    this.client.crosshairTarget = entityHitResult;
+                }
+
+            }
+
+        }
+    }
 }
-// this.client.player.getMainHandStack().getItem() instanceof SwordItem
