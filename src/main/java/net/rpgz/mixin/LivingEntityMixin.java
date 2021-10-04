@@ -201,13 +201,17 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
 
     @Override
     public ActionResult interactAt(PlayerEntity player, Vec3d hitPos, Hand hand) {
-        if (world.isClient && this.deathTime > 20) {
+        if (this.deathTime > 20) {
+            if (!this.world.isClient)
+                if (!this.inventory.isEmpty()) {
+                    player.openHandledScreen(new SimpleNamedScreenHandlerFactory((syncId, inv, p) -> new LivingEntityScreenHandler(syncId, p.getInventory(), this.inventory), new LiteralText("")));
+                    return ActionResult.SUCCESS;
+                } else if ((Object) this instanceof PlayerEntity) {
+                    return super.interactAt(player, hitPos, hand);
+                }
             return ActionResult.SUCCESS;
-        } else if (!world.isClient && this.deathTime > 20 && !this.inventory.isEmpty()) {
-            player.openHandledScreen(new SimpleNamedScreenHandlerFactory((syncId, inv, p) -> new LivingEntityScreenHandler(syncId, p.getInventory(), this.inventory), new LiteralText("")));
-            return ActionResult.SUCCESS;
-        } else
-            return ActionResult.PASS;
+        }
+        return super.interactAt(player, hitPos, hand);
     }
 
     @Shadow
