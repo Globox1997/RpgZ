@@ -204,7 +204,12 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
         if (this.deathTime > 20) {
             if (!this.world.isClient)
                 if (!this.inventory.isEmpty()) {
-                    player.openHandledScreen(new SimpleNamedScreenHandlerFactory((syncId, inv, p) -> new LivingEntityScreenHandler(syncId, p.getInventory(), this.inventory), new LiteralText("")));
+                    if (player.isSneaking())
+                        for (int i = 0; i < this.inventory.size(); i++)
+                            player.getInventory().offerOrDrop(this.inventory.getStack(i));
+                    else
+                        player.openHandledScreen(
+                                new SimpleNamedScreenHandlerFactory((syncId, inv, p) -> new LivingEntityScreenHandler(syncId, p.getInventory(), this.inventory), new LiteralText("")));
                     return ActionResult.SUCCESS;
                 } else if ((Object) this instanceof PlayerEntity) {
                     return super.interactAt(player, hitPos, hand);
