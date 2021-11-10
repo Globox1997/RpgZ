@@ -114,12 +114,12 @@ curseforge {
     project {
     	id = '404828'
 		apiKey = "$System.env.CURSEFORGEKEY"
-		changelog = file('changelog.txt')
+		changelog = file('changelog.md')
 		releaseType = 'release'
 		addGameVersion(modMinecraftVersion)
         addGameVersion("Forge")
 		mainArtifact(jar) {
-			displayName = "rpgz-$project.version-forge"
+			displayName = "rpgz-$project.version"
 		}
 	}		
 }
