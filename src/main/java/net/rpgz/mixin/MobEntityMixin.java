@@ -9,58 +9,58 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.MobEntity;
-import net.minecraft.entity.ai.controller.BodyController;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.ItemStack;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.control.BodyRotationControl;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.rpgz.access.IInventoryAccess;
 
-@Mixin(MobEntity.class)
+@Mixin(Mob.class)
 public abstract class MobEntityMixin extends LivingEntity implements IInventoryAccess {
 
   @Shadow
   @Final
   @Mutable
-  private final BodyController bodyController;
+  private final BodyRotationControl bodyRotationControl;
 
-  public MobEntityMixin(EntityType<? extends LivingEntity> entityType, World world) {
+  public MobEntityMixin(EntityType<? extends LivingEntity> entityType, Level world) {
     super(entityType, world);
-    this.bodyController = this.createBodyController();
+    this.bodyRotationControl = this.createBodyControl();
   }
 
   // Stop turning after death
-  @Inject(method = "updateDistance", at = @At("HEAD"), cancellable = true)
+  @Inject(method = "tickHeadTurn", at = @At("HEAD"), cancellable = true)
   public void updateDistance(float bodyRotation, float headRotation, CallbackInfoReturnable<Float> info) {
     if (this.deathTime > 0) {
     	info.setReturnValue(0.0F);
     }
   }
 
-  @Inject(method = "Lnet/minecraft/entity/MobEntity;isInDaylight()Z", at = @At("HEAD"), cancellable = true)
+  @Inject(method = "Lnet/minecraft/world/entity/Mob;isSunBurnTick()Z", at = @At("HEAD"), cancellable = true)
   private void isInDaylightMixin(CallbackInfoReturnable<Boolean> info) {
-    if (this.getShouldBeDead()) {
+    if (this.isDeadOrDying()) {
       info.setReturnValue(false);
     }
   }
 
-  @Redirect(method = "dropSpecialItems", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/MobEntity;entityDropItem(Lnet/minecraft/item/ItemStack;)Lnet/minecraft/entity/item/ItemEntity;"))
-  private ItemEntity dropSpecialItemsMixin(MobEntity mobEntity, ItemStack itemStack) {
+  @Redirect(method = "dropCustomDeathLoot", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Mob;spawnAtLocation(Lnet/minecraft/world/item/ItemStack;)Lnet/minecraft/world/entity/item/ItemEntity;"))
+  private ItemEntity dropSpecialItemsMixin(Mob mobEntity, ItemStack itemStack) {
     this.addingInventoryItems(itemStack);
     return null;
   }
 
   @Shadow
-  protected float getDropChance(EquipmentSlotType slot) {
+  protected float getEquipmentDropChance(EquipmentSlot slot) {
     return 1F;
   }
 
   @Shadow
-  protected BodyController createBodyController() {
-    return new BodyController(null);
+  protected BodyRotationControl createBodyControl() {
+    return new BodyRotationControl(null);
   }
 
 }

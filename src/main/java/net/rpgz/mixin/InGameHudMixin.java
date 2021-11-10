@@ -8,48 +8,50 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.AbstractGui;
-import net.minecraft.client.gui.IngameGui;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.EntityRayTraceResult;
-import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
-@Mixin(IngameGui.class)
-public abstract class InGameHudMixin extends AbstractGui {
+@Mixin(Gui.class)
+public abstract class InGameHudMixin extends GuiComponent {
   @Shadow
   @Final
   @Mutable
-  private final Minecraft mc;
+  private final Minecraft minecraft;
 
   public InGameHudMixin(Minecraft mc) {
-    this.mc = mc;
+    this.minecraft = mc;
   }
 
-  @Inject(method = "renderIngameGui", at = @At(value = "TAIL"))
-  private void renderIngameGuiMixin(MatrixStack matrixStack, float f, CallbackInfo info) {
+  @Inject(method = "render", at = @At(value = "TAIL"))
+  private void renderIngameGuiMixin(PoseStack matrixStack, float f, CallbackInfo info) {
     this.renderLootBag(matrixStack);
   }
 
-  private void renderLootBag(MatrixStack matrixStack) {
-    if (this.mc.objectMouseOver != null && this.mc.objectMouseOver.getType() == RayTraceResult.Type.ENTITY) {
-      Entity entity = ((EntityRayTraceResult) this.mc.objectMouseOver).getEntity();
+  private void renderLootBag(PoseStack matrixStack) {
+    if (this.minecraft.hitResult != null && this.minecraft.hitResult.getType() == HitResult.Type.ENTITY) {
+      Entity entity = ((EntityHitResult) this.minecraft.hitResult).getEntity();
       if (entity instanceof LivingEntity) {
         LivingEntity deadBody = (LivingEntity) entity;
         if (deadBody != null && deadBody.deathTime > 20) {
-          int scaledWidth = this.mc.getMainWindow().getScaledWidth();
-          int scaledHeight = this.mc.getMainWindow().getScaledHeight();
-          RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-          this.mc.getTextureManager().bindTexture(new ResourceLocation("rpgz:textures/sprite/loot_bag.png"));
-          AbstractGui.blit(matrixStack, (scaledWidth / 2), (scaledHeight / 2) - 16, 0.0F, 0.0F, 16, 16, 16,
+          int scaledWidth = this.minecraft.getWindow().getGuiScaledWidth();
+          int scaledHeight = this.minecraft.getWindow().getGuiScaledHeight();
+          RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+          RenderSystem.setShader(GameRenderer::getPositionTexShader);
+          RenderSystem.setShaderTexture(0, new ResourceLocation("rpgz:textures/sprite/loot_bag.png"));
+          GuiComponent.blit(matrixStack, (scaledWidth / 2), (scaledHeight / 2) - 16, 0.0F, 0.0F, 16, 16, 16,
               16);
         }
       }

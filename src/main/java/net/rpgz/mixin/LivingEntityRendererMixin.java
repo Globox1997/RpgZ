@@ -11,44 +11,45 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRenderer;
-import net.minecraft.client.renderer.entity.EntityRendererManager;
-import net.minecraft.client.renderer.entity.IEntityRenderer;
-import net.minecraft.client.renderer.entity.LivingRenderer;
-import net.minecraft.client.renderer.entity.layers.LayerRenderer;
-import net.minecraft.client.renderer.entity.model.EntityModel;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.client.renderer.entity.RenderLayerParent;
+import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
-@Mixin(LivingRenderer.class)
+@Mixin(LivingEntityRenderer.class)
 public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extends EntityModel<T>>
-    extends EntityRenderer<T> implements IEntityRenderer<T, M> {
+    extends EntityRenderer<T> implements RenderLayerParent<T, M> {
 
   @Shadow
-  protected M entityModel;
+  protected M model;
   @Shadow
-  protected final List<LayerRenderer<T, M>> layerRenderers = Lists.newArrayList();
+  protected final List<RenderLayer<T, M>> layers = Lists.newArrayList();
 
-  public LivingEntityRendererMixin(EntityRendererManager dispatcher, M entityModel) {
+  public LivingEntityRendererMixin(EntityRendererProvider.Context dispatcher, M entityModel) {
     super(dispatcher);
-    this.entityModel = entityModel;
+    this.model = entityModel;
   }
 
-  @Inject(method = "getPackedOverlay", at = @At("HEAD"), cancellable = true)
+  @Inject(method = "getOverlayCoords", at = @At("HEAD"), cancellable = true)
   private static void getOverlayMixin(LivingEntity entity, float whiteOverlayProgress,
       CallbackInfoReturnable<Integer> info) {
     info.setReturnValue(
-    		OverlayTexture.getPackedUV(OverlayTexture.getU(whiteOverlayProgress), OverlayTexture.getV(entity.hurtTime > 0)));
+    		OverlayTexture.pack(OverlayTexture.u(whiteOverlayProgress), OverlayTexture.v(entity.hurtTime > 0)));
   }
 
 //Check for block next to the mob before turning to the side
  //   @Redirect(method = "setupTransforms", at = @At(value = "INVOKE",target = "Lnet/minecraft/util/math/MathHelper;sqrt(F)F"))
- // public float testMixin(float f,LivingEntity livingEntity, MatrixStack matrices, float a, float b, float c) {
+ // public float testMixin(float f,LivingEntity livingEntity, PoseStack matrices, float a, float b, float c) {
  //   // b maybe winkel
  //   if(livingEntity.deathTime == 1){
  //     Box box = livingEntity.getBoundingBox();
@@ -67,13 +68,13 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
  //   // }
  //   return MathHelper.sqrt(f);
  // }
- //FLnet/minecraft/entity/LivingEntity;Lnet/minecraft/client/util/math/MatrixStack;FFF
+ //FLnet/minecraft/entity/LivingEntity;Lnet/minecraft/client/util/math/PoseStack;FFF
 
 
 
- //net/minecraft/client/util/math/MatrixStack.multiply (Lnet/minecraft/util/math/Quaternion;)V
- // @Redirect(method = "setupTransforms", at = @At(value = "INVOKE",target = "Lnet/minecraft/client/util/math/MatrixStack;multiply(Lnet/minecraft/util/math/Quaternion;)V"))
- // public void testMixin(MatrixStack matrices, Quaternion quaternion) {
+ //net/minecraft/client/util/math/PoseStack.multiply (Lnet/minecraft/util/math/Quaternion;)V
+ // @Redirect(method = "setupTransforms", at = @At(value = "INVOKE",target = "Lnet/minecraft/client/util/math/PoseStack;multiply(Lnet/minecraft/util/math/Quaternion;)V"))
+ // public void testMixin(PoseStack matrices, Quaternion quaternion) {
 
  //   float f = ((float)entity.deathTime + tickDelta - 1.0F) / 20.0F * 1.6F;
  //   f = MathHelper.sqrt(f);
@@ -83,7 +84,7 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
  //   matrices.multiply(Vector3f.POSITIVE_Z.getDegreesQuaternion(f * this.getLyingAngle(entity)));
  //     }
  //Lnet/minecraft/util/math/MathHelper;sqrt(F)F
- //Lnet/minecraft/client/util/math/MatrixStack;multiply(Lnet/minecraft/util/math/Quaternion;)V
+ //Lnet/minecraft/client/util/math/PoseStack;multiply(Lnet/minecraft/util/math/Quaternion;)V
 
  // @ModifyVariable(method = "setupTransforms", at = @At(value = "INVOKE",target = "Lnet/minecraft/util/math/MathHelper;sqrt(F)F",shift = Shift.AFTER),ordinal = 3) //ordinal = 3
  // public float testMixin(float original) {
@@ -93,57 +94,57 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
 
 
 
-  @Inject(method = "applyRotations", at = @At("HEAD"))
-  public void applyRotationsMixin(T entity, MatrixStack matrices, float animationProgress, float bodyYaw,
+  @Inject(method = "setupRotations", at = @At("HEAD"))
+  public void applyRotationsMixin(T entity, PoseStack matrices, float animationProgress, float bodyYaw,
       float tickDelta, CallbackInfo info) {
     if (entity.deathTime > 0) {
-      this.shadowSize = 0F;
+      this.shadowRadius = 0F;
       float f = ((float) entity.deathTime + tickDelta - 1.0F) / 20.0F * 1.6F;
       if (f > 1.0F) {
         f = 1.0F;
       }
       Float lyinganglebonus = 1F;
-      if (this.getDeathMaxRotation(entity) > 90F) {
+      if (this.getFlipDegrees(entity) > 90F) {
         lyinganglebonus = 2.5F;
       }
-      matrices.translate(0.0D, (double) ((entity.getWidth() / 4.0D) * f) * lyinganglebonus, 0.0D);
-      if (entity.isChild()) {
+      matrices.translate(0.0D, (double) ((entity.getBbWidth() / 4.0D) * f) * lyinganglebonus, 0.0D);
+      if (entity.isBaby()) {
         // (double) -((entity.getHeight()) * f) * lyinganglebonus
-    	  matrices.translate(-(double) ((entity.getHeight() / 2) * f), 0.0D, 
+    	  matrices.translate(-(double) ((entity.getBbHeight() / 2) * f), 0.0D, 
             0.0D);
 
       }
     }
   }
 
-  @Redirect(method = "Lnet/minecraft/client/renderer/entity/LivingRenderer;applyRotations(Lnet/minecraft/entity/LivingEntity;Lcom/mojang/blaze3d/matrix/MatrixStack;FFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/LivingRenderer;func_230495_a_"/*isShaking*/+"(Lnet/minecraft/entity/LivingEntity;)Z"))
-  public boolean isShakingMixin(LivingRenderer<T, M> renderer, T entity, T secondentity, MatrixStack matrix,
+  @Redirect(method = "Lnet/minecraft/client/renderer/entity/LivingEntityRenderer;setupRotations(Lnet/minecraft/world/entity/LivingEntity;Lcom/mojang/blaze3d/vertex/PoseStack;FFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/LivingEntityRenderer;isShaking(Lnet/minecraft/world/entity/LivingEntity;)Z"))
+  public boolean isShakingMixin(LivingEntityRenderer<T, M> renderer, T entity, T secondentity, PoseStack matrix,
       float o, float k, float m) {
-    if (!entity.getShouldBeDead() && this.func_230495_a_/*isShaking*/(entity)) {
+    if (!entity.isDeadOrDying() && this.isShaking(entity)) {
       return true;
     } else
       return false;
   }
 
-  @Inject(method = "handleRotationFloat", at = @At("HEAD"), cancellable = true)
+  @Inject(method = "getBob", at = @At("HEAD"), cancellable = true)
   public void handleRotationFloat(T entity, float tickDelta, CallbackInfoReturnable<Float> info) {
-    if (entity.getShouldBeDead()) {
+    if (entity.isDeadOrDying()) {
     	info.setReturnValue(0.0F);
     }
   }
 
   @Shadow
-  public M getEntityModel() {
-    return this.entityModel;
+  public M getModel() {
+    return this.model;
   }
 
   @Shadow
-  protected boolean func_230495_a_/*isShaking*/(T entity) {
+  protected boolean isShaking(T entity) {
     return false;
   }
 
   @Shadow
-  protected float getDeathMaxRotation(T entity) {
+  protected float getFlipDegrees(T entity) {
     return 0F;
   }
 

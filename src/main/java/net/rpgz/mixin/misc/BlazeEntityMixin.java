@@ -5,21 +5,21 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.monster.BlazeEntity;
-import net.minecraft.entity.monster.MonsterEntity;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.monster.Blaze;
+import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.level.Level;
 
-@Mixin(BlazeEntity.class)
-public abstract class BlazeEntityMixin extends MonsterEntity {
-  public BlazeEntityMixin(EntityType<? extends MonsterEntity> entityType, World world) {
+@Mixin(Blaze.class)
+public abstract class BlazeEntityMixin extends Monster {
+  public BlazeEntityMixin(EntityType<? extends Monster> entityType, Level world) {
     super(entityType, world);
   }
 
-  @Inject(method = "livingTick", at = @At(value = "HEAD"), cancellable = true)
+  @Inject(method = "aiStep", at = @At(value = "HEAD"), cancellable = true)
   public void livingTickMixinBlaze(CallbackInfo info) {
-    if (this.getShouldBeDead()) {
-      super.livingTick();
+    if (this.isDeadOrDying()) {
+      super.aiStep();
       info.cancel();
     }
   }

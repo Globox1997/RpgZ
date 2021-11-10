@@ -1,12 +1,12 @@
 package net.rpgz.tag;
 
-import net.minecraft.entity.EntityType;
-import net.minecraft.item.Item;
-import net.minecraft.tags.ITag;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.Item;
+import net.minecraft.tags.Tag;
 
 public class Tags {
 
-	public static ITag<Item> RARE_ITEMS;
-	public static ITag<EntityType<?>> EXCLUDED_ENTITIES;
+	public static Tag<Item> RARE_ITEMS;
+	public static Tag<EntityType<?>> EXCLUDED_ENTITIES;
 
 }

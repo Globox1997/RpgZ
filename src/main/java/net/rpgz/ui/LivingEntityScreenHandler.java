@@ -1,32 +1,32 @@
 package net.rpgz.ui;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.ContainerType;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.SoundCategory;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import net.rpgz.sound.LootSounds;
 import net.rpgz.tag.Tags;
 
-public class LivingEntityScreenHandler extends Container {
-   private final Inventory inventory;
+public class LivingEntityScreenHandler extends AbstractContainerMenu {
+   private final SimpleContainer inventory;
 
-   public LivingEntityScreenHandler(int syncId, PlayerInventory playerInventory) {
-      this(syncId, playerInventory, new Inventory());
+   public LivingEntityScreenHandler(int syncId, Inventory playerInventory) {
+      this(syncId, playerInventory, new SimpleContainer());
    }
 
-   public LivingEntityScreenHandler(int syncId, PlayerInventory playerInventory, Inventory simpleInventory) {
-      super(ContainerType.GENERIC_9X1, syncId);
+   public LivingEntityScreenHandler(int syncId, Inventory playerInventory, SimpleContainer simpleInventory) {
+      super(MenuType.GENERIC_9x1, syncId);
       this.inventory = simpleInventory;
 
       int m;
       for (m = 0; m < 9; ++m) {
          this.addSlot(new Slot(inventory, m, 8 + m * 18, 20) {
             @Override
-            public boolean isItemValid(ItemStack stack) {
+            public boolean mayPlace(ItemStack stack) {
                return false;
             }
          });
@@ -43,39 +43,39 @@ public class LivingEntityScreenHandler extends Container {
    }
 
    @Override
-   public boolean canInteractWith(PlayerEntity player) {
+   public boolean stillValid(Player player) {
       return true;
    }
 
    @Override
-   public ItemStack transferStackInSlot(PlayerEntity player, int index) {
+   public ItemStack quickMoveStack(Player player, int index) {
       Boolean rareItem = false;
       ItemStack itemStack = ItemStack.EMPTY;
-      Slot slot = (Slot) this.inventorySlots.get(index);
-      if (slot != null && slot.getHasStack()) {
-         ItemStack itemStack2 = slot.getStack();
+      Slot slot = (Slot) this.slots.get(index);
+      if (slot != null && slot.hasItem()) {
+         ItemStack itemStack2 = slot.getItem();
          itemStack = itemStack2.copy();
-         if (itemStack.getItem().isIn(Tags.RARE_ITEMS)) {
+         if (itemStack.is(Tags.RARE_ITEMS)) {
             rareItem = true;
          }
-         if (index < this.inventory.getSizeInventory()) {
-            if (!this.mergeItemStack(itemStack2, this.inventory.getSizeInventory(), this.inventorySlots.size(), true)) {
+         if (index < this.inventory.getContainerSize()) {
+            if (!this.moveItemStackTo(itemStack2, this.inventory.getContainerSize(), this.slots.size(), true)) {
                return ItemStack.EMPTY;
             }
-         } else if (!this.mergeItemStack(itemStack2, 0, this.inventory.getSizeInventory(), false)) {
+         } else if (!this.moveItemStackTo(itemStack2, 0, this.inventory.getContainerSize(), false)) {
             return ItemStack.EMPTY;
          }
          if (itemStack2.isEmpty()) {
-            slot.putStack(ItemStack.EMPTY);
+            slot.set(ItemStack.EMPTY);
          } else {
-            slot.onSlotChanged();
+            slot.setChanged();
          }
       }
 
       if (rareItem) {
-         player.playSound(LootSounds.COIN_LOOT_SOUND_EVENT, SoundCategory.PLAYERS, 1F, 1F);
+         player.playNotifySound(LootSounds.COIN_LOOT_SOUND_EVENT, SoundSource.PLAYERS, 1F, 1F);
       } else {
-         player.playSound(LootSounds.LOOT_SOUND_EVENT, SoundCategory.PLAYERS, 1F, 1F);
+         player.playNotifySound(LootSounds.LOOT_SOUND_EVENT, SoundSource.PLAYERS, 1F, 1F);
       }
 
       return itemStack;
