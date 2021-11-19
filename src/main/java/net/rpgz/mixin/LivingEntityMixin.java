@@ -1,5 +1,7 @@
 package net.rpgz.mixin;
 
+import java.util.stream.StreamSupport;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
@@ -146,9 +148,10 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
                     box.maxZ + 0.001D - (box.getZLength() / 3D));
             if (this.world.isRegionLoaded(blockPos, blockPos2)) {
                 if (!world.isClient && !this.inventory.isEmpty()
-                        && (((!this.world.getBlockCollisions(this, checkBox).allMatch(VoxelShape::isEmpty) || !this.world.getBlockCollisions(this, checkBoxThree).allMatch(VoxelShape::isEmpty))
-                                && (!this.world.getBlockCollisions(this, checkBoxTwo).allMatch(VoxelShape::isEmpty)
-                                        || !this.world.getBlockCollisions(this, checkBoxThree).allMatch(VoxelShape::isEmpty)))
+                        && (((!StreamSupport.stream(this.world.getBlockCollisions(this, checkBox).spliterator(), false).allMatch(VoxelShape::isEmpty)
+                                || !StreamSupport.stream(this.world.getBlockCollisions(this, checkBoxThree).spliterator(), false).allMatch(VoxelShape::isEmpty))
+                                && (!StreamSupport.stream(this.world.getBlockCollisions(this, checkBoxTwo).spliterator(), false).allMatch(VoxelShape::isEmpty)
+                                        || !StreamSupport.stream(this.world.getBlockCollisions(this, checkBoxThree).spliterator(), false).allMatch(VoxelShape::isEmpty)))
                                 || this.isBaby() || (Config.CONFIG.drop_unlooted && this.deathTime > Config.CONFIG.drop_after_ticks))
                         || this.getType().isIn(Tags.EXCLUDED_ENTITIES) || Config.CONFIG.excluded_entities.contains(this.getType().toString().replace("entity.", ""))) {
 
