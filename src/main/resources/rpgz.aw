@@ -1,6 +1,5 @@
 accessWidener	v1	named
 
-accessible method net/minecraft/entity/LivingEntity updatePostDeath ()V);
 accessible method net/minecraft/entity/LivingEntity dropLoot (Lnet/minecraft/entity/damage/DamageSource;Z)V
 
 accessible method net/minecraft/entity/mob/MobEntity dropEquipment (Lnet/minecraft/entity/damage/DamageSource;IZ)V
