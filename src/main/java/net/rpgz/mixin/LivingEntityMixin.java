@@ -36,7 +36,7 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.rpgz.access.IInventoryAccess;
-import net.rpgz.forge.config.RPGZConfig;
+import net.rpgz.config.Config;
 import net.rpgz.tag.Tags;
 import net.rpgz.ui.LivingEntityScreenHandler;
 
@@ -76,7 +76,7 @@ public abstract class LivingEntityMixin extends Entity implements IInventoryAcce
 			} else
 				// Water floating
 				if (this.level.containsAnyLiquid(box.move(0.0D, box.getYsize(), 0.0D))) {
-					if (RPGZConfig.surfacing_in_water.get()) {
+					if (Config.CONFIG.surfacing_in_water) {
 						this.setPosRaw(this.getX(), this.getY() + 0.03D, this.getZ());
 
 					}
@@ -85,7 +85,7 @@ public abstract class LivingEntityMixin extends Entity implements IInventoryAcce
 							&& this.canStandOnFluid(Fluids.LAVA)) {
 						this.setPosRaw(this.getX(), this.getY() + 0.03D, this.getZ());
 					} else if (this.level.containsAnyLiquid(box.move(0.0D, -box.getYsize() + (box.getYsize() / 5), 0.0D))
-							&& !RPGZConfig.surfacing_in_water.get()) {
+							&& !Config.CONFIG.surfacing_in_water) {
 						this.setPosRaw(this.getX(), this.getY() - 0.05D, this.getZ());
 					}
 				}
@@ -155,9 +155,9 @@ public abstract class LivingEntityMixin extends Entity implements IInventoryAcce
 				                || !this.level.getBlockCollisions(this, checkBoxThree).allMatch(VoxelShape::isEmpty))
 				                && (!this.level.getBlockCollisions(this, checkBoxTwo).allMatch(VoxelShape::isEmpty)
 				                    || !this.level.getBlockCollisions(this, checkBoxThree).allMatch(VoxelShape::isEmpty)))
-				                || this.isBaby() || (RPGZConfig.drop_unlooted.get() && this.deathTime > RPGZConfig.drop_after_ticks.get()))
+				                || this.isBaby() || (Config.CONFIG.drop_unlooted && this.deathTime > Config.CONFIG.drop_after_ticks))
 						|| this.getType().is(Tags.EXCLUDED_ENTITIES)
-						|| RPGZConfig.excluded_entities.get().contains(this.getType().toString().replace("entity.", ""))) {
+						|| Config.CONFIG.excluded_entities.contains(this.getType().toString().replace("entity.", ""))) {
 					this.dropInventory.removeAllItems().forEach(this::spawnAtLocation);
 				}
 
@@ -166,8 +166,8 @@ public abstract class LivingEntityMixin extends Entity implements IInventoryAcce
 		}
 
 		if ((this.deathTime >= 20 && !this.level.isClientSide && this.dropInventory.isEmpty()
-				&& RPGZConfig.despawn_immediately_when_empty.get())
-				|| (this.deathTime == RPGZConfig.despawn_corps_after_ticks.get())) {
+				&& Config.CONFIG.despawn_immediately_when_empty)
+				|| (this.deathTime == Config.CONFIG.despawn_corps_after_ticks)) {
 			if (!this.level.isClientSide) { // Make sure only on server particle
 				this.despawnParticlesServer();
 			}

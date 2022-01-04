@@ -8,14 +8,14 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.fmlclient.ConfigGuiHandler;
 import net.minecraftforge.fmllegacy.network.NetworkRegistry;
 import net.minecraftforge.fmllegacy.network.simple.SimpleChannel;
-import net.rpgz.forge.config.RPGZConfigBuilder;
+import net.rpgz.config.Config;
+import net.rpgz.config.ModMenuIntegration;
 
 @Mod(value = Rpgz.MOD_ID)
 public class Rpgz {
@@ -52,18 +52,17 @@ public class Rpgz {
 	{
 		instance = this;
 		final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+		Config.init();
 		modEventBus.addListener(this::setup);
 		modEventBus.addListener(this::clientSetup);
 		MinecraftForge.EVENT_BUS.register(this);
-		ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, RPGZConfigBuilder.common_config, "rpgz.common.toml");
-		RPGZConfigBuilder.loadConfig(RPGZConfigBuilder.common_config, FMLPaths.CONFIGDIR.get().resolve("rpgz.common.toml").toString());
+		ModLoadingContext.get().registerExtensionPoint(ConfigGuiHandler.ConfigGuiFactory.class, ModMenuIntegration.getModConfigScreenFactory());
 		
 //		NetRegistry.registerMessages();
 	}
 
 	private void setup(final FMLCommonSetupEvent event)
 	{
-//		Config.init();
 //	    LootSounds.init();
 //	    Tags.init();
 	}

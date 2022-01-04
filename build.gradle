@@ -79,6 +79,7 @@ minecraft {
 repositories {
 	maven {  url = "https://repo.spongepowered.org/maven" } // mixin
 	maven {url "https://www.cursemaven.com"}
+    maven {url "https://maven.shedaniel.me/"} // cloth config
 }
 
 dependencies {
@@ -88,6 +89,7 @@ dependencies {
 	implementation fileTree(include: ['*.jar'], dir: 'libs')
 	implementation fg.deobf("curse.maven:scaling-health-248027:"+scalinghealthID)
 	implementation fg.deobf("curse.maven:silent-lib-242998:"+silentlibID)
+	implementation fg.deobf("me.shedaniel.cloth:cloth-config-forge:"+clothConfigVersion)
 
 }
 
@@ -112,14 +114,17 @@ jar {
 
 curseforge {
     project {
-    	id = '404828'
+    	id = modCurseId
 		apiKey = "$System.env.CURSEFORGEKEY"
 		changelog = file('changelog.md')
 		releaseType = 'release'
 		addGameVersion(modMinecraftVersion)
         addGameVersion("Forge")
+        relations {
+      		requiredDependency 'cloth-config-forge'
+		}	
 		mainArtifact(jar) {
-			displayName = "rpgz-$project.version"
+			displayName = modFilename+"-$project.version"
 		}
 	}		
 }
