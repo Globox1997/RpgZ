@@ -1,6 +1,6 @@
 
 modLoader="javafml"
-loaderVersion="[37,)"
+loaderVersion="[39,)"
 license="GLPv3"
 issueTrackerURL="https://github.com/Globox1997/RpgZ/issues"
 logoFile="icon.png"
@@ -22,7 +22,7 @@ Rpg Style Looting
     # Does this dependency have to exist - if not, ordering below must be specified
     mandatory=true #mandatory
     # The version range of the dependency
-    versionRange="[37,)" #mandatory
+    versionRange="[39,)" #mandatory
     # An ordering relationship for the dependency - BEFORE or AFTER required if the relationship is not mandatory
     ordering="NONE"
     # Side this dependency is applied on - BOTH, CLIENT or SERVER
@@ -31,12 +31,12 @@ Rpg Style Looting
 [[dependencies.rpgz]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.17.1,1.18]"
+    versionRange="[1.18.1,1.19)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.rpgz]]
     modId="cloth_config"
     mandatory=true
-    versionRange="[5.0.0,)"
+    versionRange="[6.0.0,)"
     ordering="NONE"
     side="BOTH"
