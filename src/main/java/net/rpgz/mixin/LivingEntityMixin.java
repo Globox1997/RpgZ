@@ -1,5 +1,7 @@
 package net.rpgz.mixin;
 
+import java.util.stream.StreamSupport;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
@@ -7,18 +9,12 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import net.minecraft.world.entity.Pose;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.TextComponent;
-import net.minecraft.world.entity.FlyingMob;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
-import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleContainer;
@@ -26,6 +22,11 @@ import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.FlyingMob;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.Pose;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.Fluid;
@@ -35,6 +36,7 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.rpgz.access.IInventoryAccess;
 import net.rpgz.config.Config;
 import net.rpgz.tag.Tags;
@@ -151,10 +153,10 @@ public abstract class LivingEntityMixin extends Entity implements IInventoryAcce
 			
 			if (this.level.hasChunksAt(blockPos, blockPos2)) {
 				if (!level.isClientSide && !this.dropInventory.isEmpty()
-						&& (((!this.level.getBlockCollisions(this, checkBox).allMatch(VoxelShape::isEmpty)
-				                || !this.level.getBlockCollisions(this, checkBoxThree).allMatch(VoxelShape::isEmpty))
-				                && (!this.level.getBlockCollisions(this, checkBoxTwo).allMatch(VoxelShape::isEmpty)
-				                    || !this.level.getBlockCollisions(this, checkBoxThree).allMatch(VoxelShape::isEmpty)))
+						&& (((!StreamSupport.stream(this.level.getBlockCollisions(this, checkBox).spliterator(), false).allMatch(VoxelShape::isEmpty)
+                                || !StreamSupport.stream(this.level.getBlockCollisions(this, checkBoxThree).spliterator(), false).allMatch(VoxelShape::isEmpty))
+                                && (!StreamSupport.stream(this.level.getBlockCollisions(this, checkBoxTwo).spliterator(), false).allMatch(VoxelShape::isEmpty)
+                                        || !StreamSupport.stream(this.level.getBlockCollisions(this, checkBoxThree).spliterator(), false).allMatch(VoxelShape::isEmpty)))
 				                || this.isBaby() || (Config.CONFIG.drop_unlooted && this.deathTime > Config.CONFIG.drop_after_ticks))
 						|| this.getType().is(Tags.EXCLUDED_ENTITIES)
 						|| Config.CONFIG.excluded_entities.contains(this.getType().toString().replace("entity.", ""))) {

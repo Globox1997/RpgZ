@@ -5,8 +5,8 @@ import java.util.function.Supplier;
 import me.shedaniel.autoconfig.AutoConfig;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fmlclient.ConfigGuiHandler;
-import net.minecraftforge.fmlclient.ConfigGuiHandler.ConfigGuiFactory;
+import net.minecraftforge.client.ConfigGuiHandler;
+import net.minecraftforge.client.ConfigGuiHandler.ConfigGuiFactory;
 
 @OnlyIn(Dist.CLIENT)
 public class ModMenuIntegration {
