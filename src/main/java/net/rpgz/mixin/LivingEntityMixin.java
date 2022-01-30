@@ -128,36 +128,36 @@ public abstract class LivingEntityMixin extends Entity implements IInventoryAcce
 			AABB box = this.getBoundingBox();
 			BlockPos blockPos = new BlockPos(box.minX + 0.001D, box.minY + 0.001D, box.minZ + 0.001D).above();
 			BlockPos blockPos2 = new BlockPos(box.maxX - 0.001D, box.maxY - 0.001D, box.maxZ - 0.001D);
-			
-			// Older method, might be better?
-		      // if (this.world.isRegionLoaded(blockPos, blockPos2)) {
-		      // if (!world.isClient && !this.inventory.isEmpty()
-		      // && (world.getBlockState(blockPos).isFullCube(world, blockPos)
-		      // || world.getBlockState(blockPos2).isFullCube(world, blockPos2) ||
-		      // this.isBaby()
-		      // || (Config.CONFIG.drop_unlooted && this.deathTime >
-		      // Config.CONFIG.drop_after_ticks))
-		      // || this.getType().isIn(Tags.EXCLUDED_ENTITIES)
-		      // ||
-		      // Config.CONFIG.excluded_entities.contains(this.getType().toString().replace("entity.",
-		      // ""))) {
-		      // this.inventory.clearToList().forEach(this::dropStack);
-		      // }
-		      // }
 
-		      // New method to check if inside block
+			// Older method, might be better?
+			// if (this.world.isRegionLoaded(blockPos, blockPos2)) {
+			// if (!world.isClient && !this.inventory.isEmpty()
+			// && (world.getBlockState(blockPos).isFullCube(world, blockPos)
+			// || world.getBlockState(blockPos2).isFullCube(world, blockPos2) ||
+			// this.isBaby()
+			// || (Config.CONFIG.drop_unlooted && this.deathTime >
+			// Config.CONFIG.drop_after_ticks))
+			// || this.getType().isIn(Tags.EXCLUDED_ENTITIES)
+			// ||
+			// Config.CONFIG.excluded_entities.contains(this.getType().toString().replace("entity.",
+			// ""))) {
+			// this.inventory.clearToList().forEach(this::dropStack);
+			// }
+			// }
+
+			// New method to check if inside block
 			AABB checkBox = new AABB(box.maxX, box.maxY, box.maxZ, box.maxX + 0.001D, box.maxY + 0.001D, box.maxZ + 0.001D);
 			AABB checkBoxTwo = new AABB(box.minX, box.maxY, box.minZ, box.minX + 0.001D, box.maxY + 0.001D, box.minZ + 0.001D);
 			AABB checkBoxThree = new AABB(box.maxX - (box.getXsize() / 3D), box.maxY, box.maxZ - (box.getZsize() / 3D),
-		          box.maxX + 0.001D - (box.getXsize() / 3D), box.maxY + 0.001D, box.maxZ + 0.001D - (box.getZsize() / 3D));
-			
+					box.maxX + 0.001D - (box.getXsize() / 3D), box.maxY + 0.001D, box.maxZ + 0.001D - (box.getZsize() / 3D));
+
 			if (this.level.hasChunksAt(blockPos, blockPos2)) {
 				if (!level.isClientSide && !this.dropInventory.isEmpty()
 						&& (((!StreamSupport.stream(this.level.getBlockCollisions(this, checkBox).spliterator(), false).allMatch(VoxelShape::isEmpty)
-                                || !StreamSupport.stream(this.level.getBlockCollisions(this, checkBoxThree).spliterator(), false).allMatch(VoxelShape::isEmpty))
-                                && (!StreamSupport.stream(this.level.getBlockCollisions(this, checkBoxTwo).spliterator(), false).allMatch(VoxelShape::isEmpty)
-                                        || !StreamSupport.stream(this.level.getBlockCollisions(this, checkBoxThree).spliterator(), false).allMatch(VoxelShape::isEmpty)))
-				                || this.isBaby() || (Config.CONFIG.drop_unlooted && this.deathTime > Config.CONFIG.drop_after_ticks))
+								|| !StreamSupport.stream(this.level.getBlockCollisions(this, checkBoxThree).spliterator(), false).allMatch(VoxelShape::isEmpty))
+								&& (!StreamSupport.stream(this.level.getBlockCollisions(this, checkBoxTwo).spliterator(), false).allMatch(VoxelShape::isEmpty)
+										|| !StreamSupport.stream(this.level.getBlockCollisions(this, checkBoxThree).spliterator(), false).allMatch(VoxelShape::isEmpty)))
+								|| this.isBaby() || (Config.CONFIG.drop_unlooted && this.deathTime > Config.CONFIG.drop_after_ticks))
 						|| this.getType().is(Tags.EXCLUDED_ENTITIES)
 						|| Config.CONFIG.excluded_entities.contains(this.getType().toString().replace("entity.", ""))) {
 					this.dropInventory.removeAllItems().forEach(this::spawnAtLocation);
@@ -216,14 +216,24 @@ public abstract class LivingEntityMixin extends Entity implements IInventoryAcce
 
 	@Override
 	public InteractionResult interactAt(Player player, Vec3 hitPos, InteractionHand hand) {
-		if (level.isClientSide && this.deathTime > 20) {
+		if (this.deathTime > 20) {
+			if (!this.level.isClientSide)
+				if (!this.dropInventory.isEmpty()) {
+					if (player.isShiftKeyDown()) {
+						for (int i = 0; i < this.dropInventory.getContainerSize(); i++)
+							player.getInventory().placeItemBackInInventory(this.dropInventory.getItem(i));
+						this.dropInventory.clearContent();
+					}
+					else
+						player.openMenu(new SimpleMenuProvider(
+								(syncId, inv, p) -> new LivingEntityScreenHandler(syncId, p.getInventory(), this.dropInventory), new TextComponent("")));
+					return InteractionResult.SUCCESS;
+				} else if ((Object) this instanceof Player) {
+					return super.interactAt(player, hitPos, hand);
+				}
 			return InteractionResult.SUCCESS;
-		} else if (!level.isClientSide && this.deathTime > 20 && !this.dropInventory.isEmpty()) {
-			player.openMenu(new SimpleMenuProvider(
-					(syncId, inv, p) -> new LivingEntityScreenHandler(syncId, p.getInventory(), this.dropInventory), new TextComponent("")));
-			return InteractionResult.SUCCESS;
-		} else
-			return InteractionResult.PASS;
+		}
+		return super.interactAt(player, hitPos, hand);
 	}
 
 	@Shadow
