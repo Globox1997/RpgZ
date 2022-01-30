@@ -1,1 +1,3 @@
-- Updated to 1.17.1
+- Updated to mc 1.18
+- Added shift clicking
+- Added Revival compat
