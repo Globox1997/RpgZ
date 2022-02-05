@@ -1,3 +1,1 @@
-- Updated to mc 1.18
-- Added shift clicking
-- Added Revival compat
+- Fix inability to load on servers
