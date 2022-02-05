@@ -8,7 +8,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.ConfigGuiHandler;
 import net.minecraftforge.client.ConfigGuiHandler.ConfigGuiFactory;
 
-@OnlyIn(Dist.CLIENT)
 public class ModMenuIntegration {
 
 	public static Supplier<ConfigGuiFactory> getModConfigScreenFactory() {
