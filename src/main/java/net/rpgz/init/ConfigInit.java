@@ -1,9 +1,11 @@
-package net.rpgz.config;
+package net.rpgz.init;
 
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
+import net.rpgz.config.RpgzConfig;
 
-public class Config {
+public class ConfigInit {
+
     public static RpgzConfig CONFIG = new RpgzConfig();
 
     public static void init() {

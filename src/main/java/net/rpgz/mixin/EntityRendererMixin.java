@@ -12,7 +12,7 @@ import net.fabricmc.api.EnvType;
 import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 
@@ -22,7 +22,7 @@ public abstract class EntityRendererMixin<T extends Entity> {
 
     @Inject(method = "getLight", at = @At("TAIL"), cancellable = true)
     public final void getLightMixin(T entity, float tickDelta, CallbackInfoReturnable<Integer> info) {
-        if (entity.isLiving() && ((LivingEntity) entity).isDead()) {
+        if (entity.isLiving() && entity instanceof MobEntity && ((MobEntity) entity).isDead()) {
             Box box = entity.getBoundingBox();
             BlockPos blockPos = new BlockPos(box.getCenter().getX(), box.maxY, box.getCenter().getZ());
             info.setReturnValue(LightmapTextureManager.pack(this.getBlockLight(entity, blockPos), this.getSkyLight(entity, blockPos)));

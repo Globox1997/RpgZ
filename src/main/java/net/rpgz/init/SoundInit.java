@@ -1,10 +1,10 @@
-package net.rpgz.sound;
+package net.rpgz.init;
 
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
-public class LootSounds {
+public class SoundInit {
 
     public static final Identifier LOOT_SOUND = new Identifier("rpgz:loot");
     public static final Identifier COIN_LOOT_SOUND = new Identifier("rpgz:coin_loot");

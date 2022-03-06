@@ -20,7 +20,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.rpgz.access.InventoryAccess;
-import net.rpgz.config.Config;
+import net.rpgz.init.ConfigInit;
 
 @Mixin(HopperBlockEntity.class)
 public abstract class HopperBlockEntityMixin implements InventoryAccess {
@@ -28,7 +28,7 @@ public abstract class HopperBlockEntityMixin implements InventoryAccess {
 
     @Inject(method = "extract(Lnet/minecraft/world/World;Lnet/minecraft/block/entity/Hopper;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/entity/HopperBlockEntity;getInputItemEntities(Lnet/minecraft/world/World;Lnet/minecraft/block/entity/Hopper;)Ljava/util/List;"), cancellable = true)
     private static void extractMixin(World world, Hopper hopper, CallbackInfoReturnable<Boolean> info) {
-        if (Config.CONFIG.hopper_extracting) {
+        if (ConfigInit.CONFIG.hopper_extracting) {
             ticking++;
             if (ticking >= 20) {
                 BlockPos pos = new BlockPos(hopper.getHopperX(), hopper.getHopperY(), hopper.getHopperZ());

@@ -17,7 +17,7 @@ import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.EntityHitResult;
@@ -42,8 +42,8 @@ public abstract class InGameHudMixin extends DrawableHelper {
     private void renderLootBag(MatrixStack matrixStack) {
         if (this.client.crosshairTarget != null && this.client.crosshairTarget.getType() == HitResult.Type.ENTITY) {
             Entity entity = ((EntityHitResult) this.client.crosshairTarget).getEntity();
-            if (entity instanceof LivingEntity) {
-                LivingEntity deadBody = (LivingEntity) entity;
+            if (entity instanceof MobEntity) {
+                MobEntity deadBody = (MobEntity) entity;
                 if (deadBody != null && deadBody.deathTime > 20) {
                     int scaledWidth = this.client.getWindow().getScaledWidth();
                     int scaledHeight = this.client.getWindow().getScaledHeight();

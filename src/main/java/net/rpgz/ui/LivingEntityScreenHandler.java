@@ -8,8 +8,8 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.sound.SoundCategory;
-import net.rpgz.sound.LootSounds;
-import net.rpgz.tag.Tags;
+import net.rpgz.init.SoundInit;
+import net.rpgz.init.TagInit;
 
 public class LivingEntityScreenHandler extends ScreenHandler {
     private final SimpleInventory inventory;
@@ -55,7 +55,7 @@ public class LivingEntityScreenHandler extends ScreenHandler {
         if (slot != null && slot.hasStack()) {
             ItemStack itemStack2 = slot.getStack();
             itemStack = itemStack2.copy();
-            if (itemStack.isIn(Tags.RARE_ITEMS)) {
+            if (itemStack.isIn(TagInit.RARE_ITEMS)) {
                 rareItem = true;
             }
             if (index < this.inventory.size()) {
@@ -73,9 +73,9 @@ public class LivingEntityScreenHandler extends ScreenHandler {
         }
 
         if (rareItem) {
-            player.playSound(LootSounds.COIN_LOOT_SOUND_EVENT, SoundCategory.PLAYERS, 1F, 1F);
+            player.playSound(SoundInit.COIN_LOOT_SOUND_EVENT, SoundCategory.PLAYERS, 1F, 1F);
         } else {
-            player.playSound(LootSounds.LOOT_SOUND_EVENT, SoundCategory.PLAYERS, 1F, 1F);
+            player.playSound(SoundInit.LOOT_SOUND_EVENT, SoundCategory.PLAYERS, 1F, 1F);
         }
 
         return itemStack;

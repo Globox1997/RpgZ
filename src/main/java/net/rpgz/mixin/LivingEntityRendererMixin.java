@@ -23,6 +23,7 @@ import net.minecraft.client.render.entity.feature.FeatureRendererContext;
 import net.minecraft.client.render.entity.model.EntityModel;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.mob.MobEntity;
 
 @Environment(EnvType.CLIENT)
 @Mixin(LivingEntityRenderer.class)
@@ -40,7 +41,8 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
 
     @Inject(method = "getOverlay", at = @At("HEAD"), cancellable = true)
     private static void getOverlayMixin(LivingEntity entity, float whiteOverlayProgress, CallbackInfoReturnable<Integer> info) {
-        info.setReturnValue(OverlayTexture.packUv(OverlayTexture.getU(whiteOverlayProgress), OverlayTexture.getV(entity.hurtTime > 0)));
+        if (entity instanceof MobEntity)
+            info.setReturnValue(OverlayTexture.packUv(OverlayTexture.getU(whiteOverlayProgress), OverlayTexture.getV(entity.hurtTime > 0)));
     }
 
     // Check for block next to the mob before turning to the side
@@ -88,7 +90,7 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
 
     @Inject(method = "setupTransforms", at = @At("HEAD"))
     public void setupTransformsMixin(T entity, MatrixStack matrices, float animationProgress, float bodyYaw, float tickDelta, CallbackInfo info) {
-        if (entity.deathTime > 0) {
+        if (entity instanceof MobEntity && entity.deathTime > 0) {
             this.shadowRadius = 0F;
             float f = ((float) entity.deathTime + tickDelta - 1.0F) / 20.0F * 1.6F;
             if (f > 1.0F) {
@@ -108,17 +110,19 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
 
     @Redirect(method = "Lnet/minecraft/client/render/entity/LivingEntityRenderer;setupTransforms(Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/client/util/math/MatrixStack;FFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/LivingEntityRenderer;isShaking(Lnet/minecraft/entity/LivingEntity;)Z"))
     public boolean isShakingMixin(LivingEntityRenderer<T, M> renderer, T entity, T secondentity, MatrixStack matrix, float o, float k, float m) {
-        if (!entity.isDead() && this.isShaking(entity)) {
-            return true;
-        } else
+        if (entity instanceof MobEntity)
+            if (!entity.isDead() && this.isShaking(entity))
+                return true;
+            else
+                return false;
+        else
             return false;
     }
 
     @Inject(method = "getAnimationProgress", at = @At("HEAD"), cancellable = true)
     public void getAnimationProgress(T entity, float tickDelta, CallbackInfoReturnable<Float> info) {
-        if (entity.isDead()) {
+        if (entity instanceof MobEntity && entity.isDead())
             info.setReturnValue(0.0F);
-        }
     }
 
     @Shadow

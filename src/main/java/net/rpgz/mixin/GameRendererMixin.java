@@ -1,6 +1,8 @@
 package net.rpgz.mixin;
 
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -22,15 +24,14 @@ import net.minecraft.util.math.Vec3d;
 @Environment(EnvType.CLIENT)
 @Mixin(GameRenderer.class)
 public class GameRendererMixin {
-    @Shadow
-    private final MinecraftClient client;
 
-    public GameRendererMixin(MinecraftClient client) {
-        this.client = client;
-    }
+    @Mutable
+    @Final
+    @Shadow
+    private MinecraftClient client;
 
     @Inject(method = "updateTargetedEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/profiler/Profiler;pop()V"))
-    public void updateTargetedEntityMixin(float tickDelta, CallbackInfo info) {
+    private void updateTargetedEntityMixin(float tickDelta, CallbackInfo info) {
         Entity entity = this.client.getCameraEntity();
         if (this.client.crosshairTarget.getType() == HitResult.Type.BLOCK) {
             BlockPos pos = ((BlockHitResult) this.client.crosshairTarget).getBlockPos();
@@ -43,12 +44,10 @@ public class GameRendererMixin {
                 EntityHitResult entityHitResult = ProjectileUtil.raycast(entity, vec3d, vec3d3, box, (entityx) -> {
                     return !entityx.isSpectator() && entityx.collides();
                 }, 5D);
-                if (entityHitResult != null) {
+                if (entityHitResult != null)
                     this.client.crosshairTarget = entityHitResult;
-                }
-
             }
-
         }
     }
+
 }
