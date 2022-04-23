@@ -1,1 +1,3 @@
-- Fix inability to load on servers
+- Updated to 1.18.2
+
+- Improved performance
