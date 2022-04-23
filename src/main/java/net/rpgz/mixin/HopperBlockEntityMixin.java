@@ -20,7 +20,7 @@ import net.minecraft.world.level.block.entity.Hopper;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.phys.AABB;
 import net.rpgz.access.IInventoryAccess;
-import net.rpgz.config.Config;
+import net.rpgz.init.ConfigInit;
 
 @Mixin(HopperBlockEntity.class)
 public abstract class HopperBlockEntityMixin {
@@ -28,7 +28,7 @@ public abstract class HopperBlockEntityMixin {
 
     @Inject(method = "Lnet/minecraft/world/level/block/entity/HopperBlockEntity;suckInItems(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/level/block/entity/Hopper;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/entity/HopperBlockEntity;getItemsAtAndAbove(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/level/block/entity/Hopper;)Ljava/util/List;"), cancellable = true)
     private static void extractMixin(Level level, Hopper hopper, CallbackInfoReturnable<Boolean> info) {
-        if (Config.CONFIG.hopper_extracting) {
+        if (ConfigInit.CONFIG.hopper_extracting) {
             ticking++;
             if (ticking >= 20) {
                 BlockPos pos = new BlockPos(hopper.getLevelX(), hopper.getLevelY(), hopper.getLevelZ());

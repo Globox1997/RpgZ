@@ -14,8 +14,9 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
-import net.rpgz.config.Config;
 import net.rpgz.config.ModMenuIntegration;
+import net.rpgz.init.ConfigInit;
+import net.rpgz.init.TagInit;
 
 @Mod(value = Rpgz.MOD_ID)
 public class Rpgz {
@@ -52,7 +53,8 @@ public class Rpgz {
 	{
 		instance = this;
 		final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-		Config.init();
+		ConfigInit.init();
+		TagInit.init();
 		modEventBus.addListener(this::setup);
 		modEventBus.addListener(this::clientSetup);
 		MinecraftForge.EVENT_BUS.register(this);

@@ -19,6 +19,7 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -43,8 +44,8 @@ public abstract class InGameHudMixin extends GuiComponent {
   private void renderLootBag(PoseStack matrixStack) {
     if (this.minecraft.hitResult != null && this.minecraft.hitResult.getType() == HitResult.Type.ENTITY) {
       Entity entity = ((EntityHitResult) this.minecraft.hitResult).getEntity();
-      if (entity instanceof LivingEntity) {
-        LivingEntity deadBody = (LivingEntity) entity;
+      if (entity instanceof Mob) {
+    	  Mob deadBody = (Mob) entity;
         if (deadBody != null && deadBody.deathTime > 20) {
           int scaledWidth = this.minecraft.getWindow().getGuiScaledWidth();
           int scaledHeight = this.minecraft.getWindow().getGuiScaledHeight();

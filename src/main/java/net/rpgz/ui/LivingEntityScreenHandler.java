@@ -8,8 +8,8 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.rpgz.sound.LootSounds;
-import net.rpgz.tag.Tags;
+import net.rpgz.init.SoundInit;
+import net.rpgz.init.TagInit;
 
 public class LivingEntityScreenHandler extends AbstractContainerMenu {
    private final SimpleContainer inventory;
@@ -55,7 +55,7 @@ public class LivingEntityScreenHandler extends AbstractContainerMenu {
       if (slot != null && slot.hasItem()) {
          ItemStack itemStack2 = slot.getItem();
          itemStack = itemStack2.copy();
-         if (itemStack.is(Tags.RARE_ITEMS)) {
+         if (itemStack.is(TagInit.RARE_ITEMS)) {
             rareItem = true;
          }
          if (index < this.inventory.getContainerSize()) {
@@ -73,9 +73,9 @@ public class LivingEntityScreenHandler extends AbstractContainerMenu {
       }
 
       if (rareItem) {
-         player.playNotifySound(LootSounds.COIN_LOOT_SOUND_EVENT, SoundSource.PLAYERS, 1F, 1F);
+         player.playNotifySound(SoundInit.COIN_LOOT_SOUND_EVENT, SoundSource.PLAYERS, 1F, 1F);
       } else {
-         player.playNotifySound(LootSounds.LOOT_SOUND_EVENT, SoundSource.PLAYERS, 1F, 1F);
+         player.playNotifySound(SoundInit.LOOT_SOUND_EVENT, SoundSource.PLAYERS, 1F, 1F);
       }
 
       return itemStack;

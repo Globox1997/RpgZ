@@ -10,7 +10,7 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -21,7 +21,7 @@ public abstract class EntityRendererMixin<T extends Entity> {
 
     @Inject(method = "getPackedLightCoords", at = @At("TAIL"), cancellable = true)
     public final void getLightMixin(T entity, float tickDelta, CallbackInfoReturnable<Integer> info) {
-        if (entity.showVehicleHealth() && ((LivingEntity) entity).isDeadOrDying()) {
+        if (entity.showVehicleHealth() && entity instanceof Mob && ((Mob) entity).isDeadOrDying()) {
             AABB box = entity.getBoundingBox();
             BlockPos blockPos = new BlockPos(box.getCenter().x(), box.maxY, box.getCenter().z());
             info.setReturnValue(LightTexture.pack(this.getBlockLightLevel(entity, blockPos),
