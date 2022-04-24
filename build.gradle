@@ -119,7 +119,7 @@ curseforge {
 		addGameVersion(modMinecraftVersion)
         addGameVersion("Forge")
         relations {
-      		requiredDependency 'cloth-config-forge'
+      		requiredDependency 'cloth-config'
 		}	
 		mainArtifact(jar) {
 			displayName = modFilename+"-$project.version"
