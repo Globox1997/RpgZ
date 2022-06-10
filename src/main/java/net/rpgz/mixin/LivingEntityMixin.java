@@ -24,7 +24,7 @@ import net.minecraft.loot.context.LootContext;
 import net.minecraft.loot.context.LootContextTypes;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
@@ -204,8 +204,7 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
                             player.getInventory().offerOrDrop(this.inventory.getStack(i));
                         this.inventory.clear();
                     } else
-                        player.openHandledScreen(
-                                new SimpleNamedScreenHandlerFactory((syncId, inv, p) -> new LivingEntityScreenHandler(syncId, p.getInventory(), this.inventory), new LiteralText("")));
+                        player.openHandledScreen(new SimpleNamedScreenHandlerFactory((syncId, inv, p) -> new LivingEntityScreenHandler(syncId, p.getInventory(), this.inventory), Text.literal("")));
                     return ActionResult.SUCCESS;
                 } else if ((Object) this instanceof PlayerEntity) {
                     return super.interactAt(player, hitPos, hand);
