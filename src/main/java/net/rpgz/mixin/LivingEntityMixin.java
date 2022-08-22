@@ -19,6 +19,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ShovelItem;
 import net.minecraft.loot.LootTable;
 import net.minecraft.loot.context.LootContext;
 import net.minecraft.loot.context.LootContextTypes;
@@ -197,7 +198,18 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
     @Override
     public ActionResult interactAt(PlayerEntity player, Vec3d hitPos, Hand hand) {
         if (this.deathTime > 20) {
-            if (!this.world.isClient)
+            if (!this.world.isClient) {
+                if (player.getStackInHand(hand).getItem() instanceof ShovelItem) {
+                    if (!this.inventory.isEmpty())
+                        for (int i = 0; i < this.inventory.size(); i++)
+                            player.getInventory().offerOrDrop(this.inventory.getStack(i));
+                    this.inventory.clear();
+                    if (!ConfigInit.CONFIG.despawn_immediately_when_empty) {
+                        this.despawnParticlesServer();
+                        this.remove(RemovalReason.KILLED);
+                    }
+                    return ActionResult.SUCCESS;
+                }
                 if (!this.inventory.isEmpty()) {
                     if (player.isSneaking()) {
                         for (int i = 0; i < this.inventory.size(); i++)
@@ -206,9 +218,10 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
                     } else
                         player.openHandledScreen(new SimpleNamedScreenHandlerFactory((syncId, inv, p) -> new LivingEntityScreenHandler(syncId, p.getInventory(), this.inventory), Text.literal("")));
                     return ActionResult.SUCCESS;
-                } else if ((Object) this instanceof PlayerEntity) {
-                    return super.interactAt(player, hitPos, hand);
                 }
+            } else if ((Object) this instanceof PlayerEntity) {
+                return super.interactAt(player, hitPos, hand);
+            }
             return ActionResult.SUCCESS;
         }
         return super.interactAt(player, hitPos, hand);
