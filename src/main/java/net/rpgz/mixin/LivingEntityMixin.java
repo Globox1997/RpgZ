@@ -6,6 +6,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import org.spongepowered.asm.mixin.injection.At;
 
 import net.minecraft.entity.Entity;
@@ -28,6 +29,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
@@ -178,11 +180,9 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
         }
     }
 
-    @Inject(method = "dropLoot", at = @At("HEAD"), cancellable = true)
-    private void dropLootMixin(DamageSource source, boolean causedByPlayer, CallbackInfo info) {
+    @Inject(method = "dropLoot", at = @At(value = "INVOKE", target = "Lnet/minecraft/loot/LootTable;generateLoot(Lnet/minecraft/loot/context/LootContext;Ljava/util/function/Consumer;)V"), cancellable = true, locals = LocalCapture.CAPTURE_FAILSOFT)
+    private void dropLootMixin(DamageSource source, boolean causedByPlayer, CallbackInfo info, Identifier identifier, LootTable lootTable, LootContext.Builder builder) {
         if (isEntityInstanceOfMobEnity) {
-            LootTable lootTable = this.world.getServer().getLootManager().getTable(this.getType().getLootTableId());
-            LootContext.Builder builder = this.getLootContextBuilder(causedByPlayer, source);
             lootTable.generateLoot(builder.build(LootContextTypes.ENTITY), this::addingInventoryItems);
             info.cancel();
         }
