@@ -1,7 +1,6 @@
 package net.rpgz.config;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.ArrayList;
 
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
@@ -21,6 +20,10 @@ public class RpgzConfig implements ConfigData {
     public boolean despawn_immediately_when_empty = true;
     public boolean surfacing_in_water = true;
     @Comment("Example: minecraft:zombie or adventurez:brown_fungus")
-    public List<String> excluded_entities = Arrays.asList("minecraft:shulker");
+    public ArrayList<String> excluded_entities = new ArrayList<>() {
+        {
+            add("minecraft:shulker");
+        }
+    };
 
 }
