@@ -42,7 +42,7 @@ public class GameRendererMixin {
                 Vec3d vec3d3 = vec3d.add(vec3d2.x * reachDinstance, vec3d2.y * reachDinstance, vec3d2.z * reachDinstance);
                 Box box = entity.getBoundingBox().stretch(vec3d2.multiply(reachDinstance)).expand(1.0D, 1.0D, 1.0D);
                 EntityHitResult entityHitResult = ProjectileUtil.raycast(entity, vec3d, vec3d3, box, (entityx) -> {
-                    return !entityx.isSpectator() && entityx.collides();
+                    return !entityx.isSpectator() && entityx.canHit();
                 }, 5D);
                 if (entityHitResult != null)
                     this.client.crosshairTarget = entityHitResult;
