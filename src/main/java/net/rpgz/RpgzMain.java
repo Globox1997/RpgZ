@@ -12,6 +12,5 @@ public class RpgzMain implements ModInitializer {
         ConfigInit.init();
         SoundInit.init();
         TagInit.init();
-
     }
 }
