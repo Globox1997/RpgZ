@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -209,7 +209,7 @@ public abstract class LivingEntityMixin extends Entity implements IInventoryAcce
 					}
 					else
 						player.openMenu(new SimpleMenuProvider(
-								(syncId, inv, p) -> new LivingEntityScreenHandler(syncId, p.getInventory(), this.dropInventory), new TextComponent("")));
+								(syncId, inv, p) -> new LivingEntityScreenHandler(syncId, p.getInventory(), this.dropInventory), Component.literal("")));
 					return InteractionResult.SUCCESS;
 				} else if ((Object) this instanceof Player) {
 					return super.interactAt(player, hitPos, hand);

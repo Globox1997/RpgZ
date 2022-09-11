@@ -3,15 +3,12 @@ package net.rpgz.config;
 import java.util.function.Supplier;
 
 import me.shedaniel.autoconfig.AutoConfig;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.ConfigGuiHandler;
-import net.minecraftforge.client.ConfigGuiHandler.ConfigGuiFactory;
+import net.minecraftforge.client.ConfigScreenHandler.ConfigScreenFactory;
 
 public class ModMenuIntegration {
 
-	public static Supplier<ConfigGuiFactory> getModConfigScreenFactory() {
-		return () -> new ConfigGuiHandler.ConfigGuiFactory((minecraft, parent) -> {
+	public static Supplier<ConfigScreenFactory> getModConfigScreenFactory() {
+		return () -> new ConfigScreenFactory((minecraft, parent) -> {
 			return AutoConfig.getConfigScreen(RpgzConfig.class, parent).get();
 		});
 	}
