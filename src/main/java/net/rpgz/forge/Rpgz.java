@@ -59,7 +59,6 @@ public class Rpgz {
 		modEventBus.addListener(this::clientSetup);
 		MinecraftForge.EVENT_BUS.register(this);
 		ModLoadingContext.get().registerExtensionPoint(ConfigScreenFactory.class, ModMenuIntegration.getModConfigScreenFactory());
-		
 //		NetRegistry.registerMessages();
 	}
 
