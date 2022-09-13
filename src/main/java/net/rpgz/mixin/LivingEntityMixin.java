@@ -26,6 +26,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ShovelItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.storage.loot.LootContext;
@@ -123,7 +124,7 @@ public abstract class LivingEntityMixin extends Entity implements IInventoryAcce
 					BlockPos blockPos2 = new BlockPos(box.maxX - 0.001D, box.maxY - 0.001D, box.maxZ - 0.001D);
 
 					// Older method, might be better?
-							// if (this.level.isRegionLoaded(blockPos, blockPos2)) {
+					// if (this.level.isRegionLoaded(blockPos, blockPos2)) {
 					// if (!level.isClientSide && !this.inventory.isEmpty()
 					// && (level.getBlockState(blockPos).isFullCube(level, blockPos)
 					// || level.getBlockState(blockPos2).isFullCube(level, blockPos2) ||
@@ -200,7 +201,18 @@ public abstract class LivingEntityMixin extends Entity implements IInventoryAcce
 	@Override
 	public InteractionResult interactAt(Player player, Vec3 hitPos, InteractionHand hand) {
 		if (this.deathTime > 20) {
-			if (!this.level.isClientSide)
+			if (!this.level.isClientSide) {
+				if (player.getItemInHand(hand).getItem() instanceof ShovelItem) {
+					if (!this.dropInventory.isEmpty())
+						for (int i = 0; i < this.dropInventory.getContainerSize(); i++)
+							player.getInventory().placeItemBackInInventory(this.dropInventory.getItem(i));
+					this.dropInventory.clearContent();
+					if (!ConfigInit.CONFIG.despawn_immediately_when_empty) {
+						this.despawnParticlesServer();
+						this.remove(RemovalReason.KILLED);
+					}
+					return InteractionResult.SUCCESS;
+				}
 				if (!this.dropInventory.isEmpty()) {
 					if (player.isShiftKeyDown()) {
 						for (int i = 0; i < this.dropInventory.getContainerSize(); i++)
@@ -211,9 +223,10 @@ public abstract class LivingEntityMixin extends Entity implements IInventoryAcce
 						player.openMenu(new SimpleMenuProvider(
 								(syncId, inv, p) -> new LivingEntityScreenHandler(syncId, p.getInventory(), this.dropInventory), Component.literal("")));
 					return InteractionResult.SUCCESS;
-				} else if ((Object) this instanceof Player) {
-					return super.interactAt(player, hitPos, hand);
 				}
+			} else if ((Object) this instanceof Player) {
+				return super.interactAt(player, hitPos, hand);
+			}
 			return InteractionResult.SUCCESS;
 		}
 		return super.interactAt(player, hitPos, hand);
