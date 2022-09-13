@@ -1,3 +1,3 @@
-- Updated to 1.18.2
+- Ported to 1.19.2
 
-- Improved performance
+- Fixed dead monsters preventing sleep
