@@ -7,10 +7,12 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -181,12 +183,10 @@ public abstract class LivingEntityMixin extends Entity implements IInventoryAcce
 		}
 	}
 
-	@Inject(method = "dropFromLootTable", at = @At("HEAD"), cancellable = true)
-	private void dropLootMixin(DamageSource source, boolean causedByPlayer, CallbackInfo info) {
+	@Inject(method = "dropFromLootTable", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/storage/loot/LootTable;getRandomItems(Lnet/minecraft/world/level/storage/loot/LootContext;)Lit/unimi/dsi/fastutil/objects/ObjectArrayList;"), cancellable = true, locals = LocalCapture.CAPTURE_FAILSOFT)
+	private void dropLootMixin(DamageSource source, boolean causedByPlayer, CallbackInfo info, ResourceLocation resourcelocation, LootTable loottable, LootContext.Builder lootcontext$builder) {
 		if (isEntityInstanceOfMobEnity) {
-			LootTable lootTable = this.level.getServer().getLootTables().get(this.getType().getDefaultLootTable());
-			LootContext.Builder builder = this.createLootContext(causedByPlayer, source);
-			lootTable.getRandomItems(builder.create(LootContextParamSets.ENTITY), this::addingInventoryItems);
+			loottable.getRandomItems(lootcontext$builder.create(LootContextParamSets.ENTITY), this::addingInventoryItems);
 			info.cancel();
 		}
 
