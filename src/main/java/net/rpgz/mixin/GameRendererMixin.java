@@ -41,7 +41,7 @@ public class GameRendererMixin {
 				Vec3 vec3d3 = vec3d.add(vec3d2.x * reachDinstance, vec3d2.y * reachDinstance, vec3d2.z * reachDinstance);
 				AABB box = entity.getBoundingBox().expandTowards(vec3d2.scale(reachDinstance)).expandTowards(1.0D, 1.0D, 1.0D);
 				EntityHitResult entityHitResult = ProjectileUtil.getEntityHitResult(entity, vec3d, vec3d3, box, (entityx) -> {
-					return !entityx.isSpectator() && entityx.canBeCollidedWith();
+					return !entityx.isSpectator() && entityx.isPickable();
 				}, 5D);
 				if (entityHitResult != null)
 					this.minecraft.hitResult = entityHitResult;
