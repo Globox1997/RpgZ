@@ -1,3 +1,1 @@
-- Updated to 1.18.2
-
-- Improved performance
+- Fix excluded_entities constant resetting
