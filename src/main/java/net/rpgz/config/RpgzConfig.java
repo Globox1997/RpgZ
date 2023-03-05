@@ -1,12 +1,10 @@
 package net.rpgz.config;
 
-import java.util.List;
-
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
 
 import me.shedaniel.autoconfig.ConfigData;
-import me.shedaniel.autoconfig.annotation.ConfigEntry;
 import me.shedaniel.autoconfig.annotation.Config;
+import me.shedaniel.autoconfig.annotation.ConfigEntry;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
 
 @Config(name = "rpgz")
@@ -22,6 +20,17 @@ public class RpgzConfig implements ConfigData {
   public boolean despawn_immediately_when_empty = true;
   public boolean surfacing_in_water = true;
   @Comment("Example: minecraft:zombie or adventurez:brown_fungus")
-  public List<String> excluded_entities = Lists.newArrayList("minecraft:shulker");
+  public ArrayList<String> excluded_entities = new ArrayList<>() {
+      {
+          add("minecraft:shulker");
+      }
+      //This prevents duplicate entries from polluting the list. 
+      //TODO: Find a way to allow anyone modifying the config to remove whatever the defaults are on this list, 
+      //remember that you have tried all sorts of things to make this possible. I hope you, future me, can solve this conundrum 
+      public boolean add(String e) {
+    	  for (String s : this) if (s.equals(e)) return false;
+    	  return super.add(e);
+      };
+  };
 
 }
