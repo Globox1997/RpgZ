@@ -1,1 +1,1 @@
-- Fix excluded_entities constant resetting
+- Ported to 1.19.3
