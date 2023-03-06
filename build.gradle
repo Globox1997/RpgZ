@@ -85,8 +85,6 @@ dependencies {
 	annotationProcessor "org.spongepowered:mixin:"+modMixinVersion+":processor"
 	implementation "org.spongepowered:mixin:"+modMixinVersion+""
 	implementation fileTree(include: ['*.jar'], dir: 'libs')
-	//implementation fg.deobf("curse.maven:scaling-health-248027:"+scalinghealthID)
-	//implementation fg.deobf("curse.maven:silent-lib-242998:"+silentlibID)
 	implementation fg.deobf("me.shedaniel.cloth:cloth-config-forge:"+clothConfigVersion)
 
 }

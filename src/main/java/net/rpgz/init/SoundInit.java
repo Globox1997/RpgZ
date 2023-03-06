@@ -9,8 +9,8 @@ public class SoundInit {
   public static final ResourceLocation LOOT_SOUND = new ResourceLocation("rpgz:loot");
   public static final ResourceLocation COIN_LOOT_SOUND = new ResourceLocation("rpgz:coin_loot");
 
-  public static SoundEvent LOOT_SOUND_EVENT = new SoundEvent(LOOT_SOUND);
-  public static SoundEvent COIN_LOOT_SOUND_EVENT = new SoundEvent(COIN_LOOT_SOUND);
+  public static SoundEvent LOOT_SOUND_EVENT = SoundEvent.createVariableRangeEvent(LOOT_SOUND);
+  public static SoundEvent COIN_LOOT_SOUND_EVENT = SoundEvent.createVariableRangeEvent(COIN_LOOT_SOUND);
 
   public static void registerAll(RegisterHelper<SoundEvent> helper) {
 		helper.register(LOOT_SOUND, LOOT_SOUND_EVENT);
