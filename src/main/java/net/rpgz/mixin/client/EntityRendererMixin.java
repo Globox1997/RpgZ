@@ -1,6 +1,5 @@
-package net.rpgz.mixin;
+package net.rpgz.mixin.client;
 
-import net.minecraft.world.LightType;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -15,6 +14,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.MathHelper;
 
 @Environment(EnvType.CLIENT)
 @Mixin(EntityRenderer.class)
@@ -24,7 +24,7 @@ public abstract class EntityRendererMixin<T extends Entity> {
     public final void getLightMixin(T entity, float tickDelta, CallbackInfoReturnable<Integer> info) {
         if (entity.isLiving() && entity instanceof MobEntity && ((MobEntity) entity).isDead()) {
             Box box = entity.getBoundingBox();
-            BlockPos blockPos = new BlockPos(box.getCenter().getX(), box.maxY, box.getCenter().getZ());
+            BlockPos blockPos = new BlockPos(MathHelper.floor(box.getCenter().getX()), MathHelper.floor(box.maxY), MathHelper.floor(box.getCenter().getZ()));
             info.setReturnValue(LightmapTextureManager.pack(this.getBlockLight(entity, blockPos), this.getSkyLight(entity, blockPos)));
         }
     }
@@ -36,7 +36,7 @@ public abstract class EntityRendererMixin<T extends Entity> {
 
     @Shadow
     protected int getSkyLight(T entity, BlockPos pos) {
-        return entity.world.getLightLevel(LightType.SKY, pos);
+        return 0;
     }
 
 }

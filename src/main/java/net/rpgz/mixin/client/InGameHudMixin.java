@@ -1,6 +1,4 @@
-package net.rpgz.mixin;
-
-import com.mojang.blaze3d.systems.RenderSystem;
+package net.rpgz.mixin.client;
 
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -13,9 +11,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawableHelper;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.util.hit.HitResult;
@@ -24,22 +21,24 @@ import net.minecraft.util.hit.EntityHitResult;
 
 @Environment(EnvType.CLIENT)
 @Mixin(InGameHud.class)
-public abstract class InGameHudMixin extends DrawableHelper {
+public abstract class InGameHudMixin {
+
     @Shadow
     @Final
     @Mutable
-    private final MinecraftClient client;
+    private MinecraftClient client;
+
+    private static final Identifier LOOT_BAG_TEXTURE = new Identifier("rpgz", "textures/sprite/loot_bag.png");
 
     public InGameHudMixin(MinecraftClient client) {
-        this.client = client;
     }
 
     @Inject(method = "render", at = @At(value = "TAIL"))
-    private void renderMixin(MatrixStack matrixStack, float f, CallbackInfo info) {
-        this.renderLootBag(matrixStack);
+    private void renderMixin(DrawContext context, float f, CallbackInfo info) {
+        this.renderLootBag(context);
     }
 
-    private void renderLootBag(MatrixStack matrixStack) {
+    private void renderLootBag(DrawContext context) {
         if (this.client.crosshairTarget != null && this.client.crosshairTarget.getType() == HitResult.Type.ENTITY) {
             Entity entity = ((EntityHitResult) this.client.crosshairTarget).getEntity();
             if (entity instanceof MobEntity) {
@@ -47,9 +46,7 @@ public abstract class InGameHudMixin extends DrawableHelper {
                 if (deadBody != null && deadBody.deathTime > 20) {
                     int scaledWidth = this.client.getWindow().getScaledWidth();
                     int scaledHeight = this.client.getWindow().getScaledHeight();
-                    RenderSystem.setShaderTexture(0, new Identifier("rpgz:textures/sprite/loot_bag.png"));
-                    RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-                    DrawableHelper.drawTexture(matrixStack, (scaledWidth / 2), (scaledHeight / 2) - 16, 0.0F, 0.0F, 16, 16, 16, 16);
+                    context.drawTexture(LOOT_BAG_TEXTURE, (scaledWidth / 2), (scaledHeight / 2) - 16, 0.0F, 0.0F, 16, 16, 16, 16);
                 }
             }
         }

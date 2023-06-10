@@ -1,11 +1,12 @@
-package net.rpgz.mixin;
+package net.rpgz.mixin.client;
 
 import java.util.List;
 
-import com.google.common.collect.Lists;
-
 import net.minecraft.client.render.entity.EntityRendererFactory;
+
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -32,17 +33,19 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
     @Shadow
     protected M model;
     @Shadow
-    protected final List<FeatureRenderer<T, M>> features = Lists.newArrayList();
+    @Mutable
+    @Final
+    protected List<FeatureRenderer<T, M>> features;
 
     public LivingEntityRendererMixin(EntityRendererFactory.Context ctx, M model) {
         super(ctx);
-        this.model = model;
     }
 
     @Inject(method = "getOverlay", at = @At("HEAD"), cancellable = true)
     private static void getOverlayMixin(LivingEntity entity, float whiteOverlayProgress, CallbackInfoReturnable<Integer> info) {
-        if (entity instanceof MobEntity)
+        if (entity instanceof MobEntity) {
             info.setReturnValue(OverlayTexture.packUv(OverlayTexture.getU(whiteOverlayProgress), OverlayTexture.getV(entity.hurtTime > 0)));
+        }
     }
 
     // Check for block next to the mob before turning to the side
@@ -110,24 +113,27 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
 
     @Redirect(method = "Lnet/minecraft/client/render/entity/LivingEntityRenderer;setupTransforms(Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/client/util/math/MatrixStack;FFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/LivingEntityRenderer;isShaking(Lnet/minecraft/entity/LivingEntity;)Z"))
     public boolean isShakingMixin(LivingEntityRenderer<T, M> renderer, T entity, T secondentity, MatrixStack matrix, float o, float k, float m) {
-        if (entity instanceof MobEntity)
-            if (!entity.isDead() && this.isShaking(entity))
+        if (entity instanceof MobEntity) {
+            if (!entity.isDead() && this.isShaking(entity)) {
                 return true;
-            else
+            } else {
                 return false;
-        else
+            }
+        } else {
             return false;
+        }
     }
 
     @Inject(method = "getAnimationProgress", at = @At("HEAD"), cancellable = true)
     public void getAnimationProgress(T entity, float tickDelta, CallbackInfoReturnable<Float> info) {
-        if (entity instanceof MobEntity && entity.isDead())
+        if (entity instanceof MobEntity && entity.isDead()) {
             info.setReturnValue(0.0F);
+        }
     }
 
     @Shadow
     public M getModel() {
-        return this.model;
+        return null;
     }
 
     @Shadow

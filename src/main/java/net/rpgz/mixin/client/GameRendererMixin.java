@@ -1,4 +1,4 @@
-package net.rpgz.mixin;
+package net.rpgz.mixin.client;
 
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -44,8 +44,9 @@ public class GameRendererMixin {
                 EntityHitResult entityHitResult = ProjectileUtil.raycast(entity, vec3d, vec3d3, box, (entityx) -> {
                     return !entityx.isSpectator() && entityx.canHit();
                 }, 5D);
-                if (entityHitResult != null)
+                if (entityHitResult != null) {
                     this.client.crosshairTarget = entityHitResult;
+                }
             }
         }
     }

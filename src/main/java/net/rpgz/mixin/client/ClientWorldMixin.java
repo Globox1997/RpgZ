@@ -1,4 +1,4 @@
-package net.rpgz.mixin;
+package net.rpgz.mixin.client;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -16,8 +16,9 @@ public abstract class ClientWorldMixin {
 
     @Redirect(method = "Lnet/minecraft/client/world/ClientWorld;tickEntity(Lnet/minecraft/entity/Entity;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;tick()V"))
     public void tickEntityMixin(Entity entity) {
-        if (entity instanceof MobEntity && !entity.isAlive())
+        if (entity instanceof MobEntity && !entity.isAlive()) {
             entity.age = -1; // age has to be 0 or -1 cause of some models (example: guardian)
+        }
         entity.tick();
 
     }

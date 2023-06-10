@@ -31,7 +31,7 @@ public abstract class HopperBlockEntityMixin implements InventoryAccess {
         if (ConfigInit.CONFIG.hopper_extracting) {
             ticking++;
             if (ticking >= 20) {
-                BlockPos pos = new BlockPos(hopper.getHopperX(), hopper.getHopperY(), hopper.getHopperZ());
+                BlockPos pos = BlockPos.ofFloored(hopper.getHopperX(), hopper.getHopperY(), hopper.getHopperZ());
                 Box box = new Box(pos).expand(0.0D, 1.0D, 0.0D);
                 List<LivingEntity> list = world.getEntitiesByClass(LivingEntity.class, box, EntityPredicates.EXCEPT_SPECTATOR);
                 if (!list.isEmpty()) {

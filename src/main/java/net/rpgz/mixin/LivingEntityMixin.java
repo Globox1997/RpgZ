@@ -22,8 +22,7 @@ import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ShovelItem;
 import net.minecraft.loot.LootTable;
-import net.minecraft.loot.context.LootContext;
-import net.minecraft.loot.context.LootContextTypes;
+import net.minecraft.loot.context.LootContextParameterSet;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
@@ -64,8 +63,8 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
         LivingEntity livingEntity = (LivingEntity) (Object) this;
         if (this.deathTime > 19 && isEntityInstanceOfMobEnity) {
             Box box = this.getBoundingBox();
-            BlockPos blockPos = new BlockPos(box.getCenter().getX(), box.minY, box.getCenter().getZ());
-            if (this.world.getBlockState(blockPos).isAir()) {
+            BlockPos blockPos = BlockPos.ofFloored(box.getCenter().getX(), box.minY, box.getCenter().getZ());
+            if (this.getWorld().getBlockState(blockPos).isAir()) {
                 if (livingEntity instanceof FlyingEntity) {
                     this.setPos(this.getX(), this.getY() - 0.25D, this.getZ());
                 } else if (this.getVelocity().y > 0) {
@@ -77,12 +76,12 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
                 }
             } else
             // Water floating
-            if (this.world.containsFluid(box.offset(0.0D, box.getYLength(), 0.0D))) {
+            if (this.getWorld().containsFluid(box.offset(0.0D, box.getYLength(), 0.0D))) {
                 if (ConfigInit.CONFIG.surfacing_in_water)
                     this.setPos(this.getX(), this.getY() + 0.03D, this.getZ());
-                if (this.canWalkOnFluid(this.world.getFluidState(this.getBlockPos())))
+                if (this.canWalkOnFluid(this.getWorld().getFluidState(this.getBlockPos())))
                     this.setPos(this.getX(), this.getY() + 0.03D, this.getZ());
-                else if (this.world.containsFluid(box.offset(0.0D, -box.getYLength() + (box.getYLength() / 5), 0.0D)) && !ConfigInit.CONFIG.surfacing_in_water)
+                else if (this.getWorld().containsFluid(box.offset(0.0D, -box.getYLength() + (box.getYLength() / 5), 0.0D)) && !ConfigInit.CONFIG.surfacing_in_water)
                     this.setPos(this.getX(), this.getY() - 0.05D, this.getZ());
             }
             info.cancel();
@@ -90,6 +89,7 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
 
     }
 
+    @SuppressWarnings("deprecation")
     @Inject(method = "updatePostDeath", at = @At("HEAD"), cancellable = true)
     protected void updatePostDeathMixin(CallbackInfo info) {
         if (isEntityInstanceOfMobEnity) {
@@ -117,13 +117,13 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
                 // Shulker has trouble
                 // this.checkBlockCollision(); //Doesnt solve problem
                 // if (this.isInsideWall()) {} // Doenst work
-                if (!world.isClient) {
+                if (!this.getWorld().isClient()) {
                     Box box = this.getBoundingBox();
-                    BlockPos blockPos = new BlockPos(box.minX + 0.001D, box.minY + 0.001D, box.minZ + 0.001D).up();
-                    BlockPos blockPos2 = new BlockPos(box.maxX - 0.001D, box.maxY - 0.001D, box.maxZ - 0.001D);
+                    BlockPos blockPos = BlockPos.ofFloored(box.minX + 0.001D, box.minY + 0.001D, box.minZ + 0.001D).up();
+                    BlockPos blockPos2 = BlockPos.ofFloored(box.maxX - 0.001D, box.maxY - 0.001D, box.maxZ - 0.001D);
 
                     // Older method, might be better?
-                    // if (this.world.isRegionLoaded(blockPos, blockPos2)) {
+                    // if (this.getWorld().isRegionLoaded(blockPos, blockPos2)) {
                     // if (!world.isClient && !this.inventory.isEmpty()
                     // && (world.getBlockState(blockPos).isFullCube(world, blockPos)
                     // || world.getBlockState(blockPos2).isFullCube(world, blockPos2) ||
@@ -143,12 +143,12 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
                     Box checkBoxTwo = new Box(box.minX, box.maxY, box.minZ, box.minX + 0.001D, box.maxY + 0.001D, box.minZ + 0.001D);
                     Box checkBoxThree = new Box(box.maxX - (box.getXLength() / 3D), box.maxY, box.maxZ - (box.getZLength() / 3D), box.maxX + 0.001D - (box.getXLength() / 3D), box.maxY + 0.001D,
                             box.maxZ + 0.001D - (box.getZLength() / 3D));
-                    if (this.world.isRegionLoaded(blockPos, blockPos2))
+                    if (this.getWorld().isRegionLoaded(blockPos, blockPos2))
                         if (!this.inventory.isEmpty()
-                                && (((!StreamSupport.stream(this.world.getBlockCollisions(this, checkBox).spliterator(), false).allMatch(VoxelShape::isEmpty)
-                                        || !StreamSupport.stream(this.world.getBlockCollisions(this, checkBoxThree).spliterator(), false).allMatch(VoxelShape::isEmpty))
-                                        && (!StreamSupport.stream(this.world.getBlockCollisions(this, checkBoxTwo).spliterator(), false).allMatch(VoxelShape::isEmpty)
-                                                || !StreamSupport.stream(this.world.getBlockCollisions(this, checkBoxThree).spliterator(), false).allMatch(VoxelShape::isEmpty)))
+                                && (((!StreamSupport.stream(this.getWorld().getBlockCollisions(this, checkBox).spliterator(), false).allMatch(VoxelShape::isEmpty)
+                                        || !StreamSupport.stream(this.getWorld().getBlockCollisions(this, checkBoxThree).spliterator(), false).allMatch(VoxelShape::isEmpty))
+                                        && (!StreamSupport.stream(this.getWorld().getBlockCollisions(this, checkBoxTwo).spliterator(), false).allMatch(VoxelShape::isEmpty)
+                                                || !StreamSupport.stream(this.getWorld().getBlockCollisions(this, checkBoxThree).spliterator(), false).allMatch(VoxelShape::isEmpty)))
                                         || this.isBaby() || (ConfigInit.CONFIG.drop_unlooted && this.deathTime > ConfigInit.CONFIG.drop_after_ticks))
                                 || this.getType().isIn(TagInit.EXCLUDED_ENTITIES) || ConfigInit.CONFIG.excluded_entities.contains(this.getType().toString().replace("entity.", "").replace(".", ":")))
 
@@ -157,9 +157,9 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
                 // world.getClosestPlayer(this,// 1.0D)// !=// null// || Testing purpose
             }
 
-            if ((!this.world.isClient && this.deathTime >= 20 && this.inventory.isEmpty() && ConfigInit.CONFIG.despawn_immediately_when_empty)
+            if ((!this.getWorld().isClient() && this.deathTime >= 20 && this.inventory.isEmpty() && ConfigInit.CONFIG.despawn_immediately_when_empty)
                     || (this.deathTime >= ConfigInit.CONFIG.despawn_corps_after_ticks)) {
-                if (!this.world.isClient) // Make sure only on server particle
+                if (!this.getWorld().isClient()) // Make sure only on server particle
                     this.despawnParticlesServer();
 
                 this.remove(RemovalReason.KILLED);
@@ -176,14 +176,16 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
             double x = MathHelper.nextDouble(random, this.getBoundingBox().minX - 0.5D, this.getBoundingBox().maxX) + 0.5D;
             double y = MathHelper.nextDouble(random, this.getBoundingBox().minY, this.getBoundingBox().maxY) + 0.5D;
             double z = MathHelper.nextDouble(random, this.getBoundingBox().minZ - 0.5D, this.getBoundingBox().maxZ) + 0.5D;
-            ((ServerWorld) this.world).spawnParticles(ParticleTypes.POOF, x, y, z, 0, d, e, f, 0.01D);
+            ((ServerWorld) this.getWorld()).spawnParticles(ParticleTypes.POOF, x, y, z, 0, d, e, f, 0.01D);
         }
     }
 
-    @Inject(method = "dropLoot", at = @At(value = "INVOKE", target = "Lnet/minecraft/loot/LootTable;generateLoot(Lnet/minecraft/loot/context/LootContext;Ljava/util/function/Consumer;)V"), cancellable = true, locals = LocalCapture.CAPTURE_FAILSOFT)
-    private void dropLootMixin(DamageSource source, boolean causedByPlayer, CallbackInfo info, Identifier identifier, LootTable lootTable, LootContext.Builder builder) {
+    // generateLoot
+    @Inject(method = "dropLoot", at = @At(value = "INVOKE", target = "Lnet/minecraft/loot/LootTable;generateLoot(Lnet/minecraft/loot/context/LootContextParameterSet;JLjava/util/function/Consumer;)V"), cancellable = true, locals = LocalCapture.CAPTURE_FAILSOFT)
+    private void dropLootMixin(DamageSource source, boolean causedByPlayer, CallbackInfo info, Identifier identifier, LootTable lootTable, LootContextParameterSet.Builder builder,
+            LootContextParameterSet lootContextParameterSet) {
         if (isEntityInstanceOfMobEnity) {
-            lootTable.generateLoot(builder.build(LootContextTypes.ENTITY), this::addingInventoryItems);
+            lootTable.generateLoot(lootContextParameterSet, this.getLootTableSeed(), this::addingInventoryItems);
             info.cancel();
         }
 
@@ -191,14 +193,14 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
 
     @Override
     public void addingInventoryItems(ItemStack stack) {
-        if (!this.world.isClient && !stack.isEmpty())
+        if (!this.getWorld().isClient() && !stack.isEmpty())
             this.inventory.addStack(stack);
     }
 
     @Override
     public ActionResult interactAt(PlayerEntity player, Vec3d hitPos, Hand hand) {
         if (this.deathTime > 20) {
-            if (!this.world.isClient) {
+            if (!this.getWorld().isClient()) {
                 if (player.getStackInHand(hand).getItem() instanceof ShovelItem) {
                     if (!this.inventory.isEmpty())
                         for (int i = 0; i < this.inventory.size(); i++)
@@ -228,8 +230,8 @@ public abstract class LivingEntityMixin extends Entity implements InventoryAcces
     }
 
     @Shadow
-    protected LootContext.Builder getLootContextBuilder(boolean causedByPlayer, DamageSource source) {
-        return (new LootContext.Builder((ServerWorld) this.world));
+    public long getLootTableSeed() {
+        return 0L;
     }
 
     @Shadow

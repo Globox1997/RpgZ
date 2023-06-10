@@ -16,11 +16,11 @@
     "misc.SheepEntityMixin"
   ],
   "client": [
-    "LivingEntityRendererMixin",
-    "InGameHudMixin",
-    "ClientWorldMixin",
-    "GameRendererMixin",
-    "EntityRendererMixin",
+    "client.LivingEntityRendererMixin",
+    "client.InGameHudMixin",
+    "client.ClientWorldMixin",
+    "client.GameRendererMixin",
+    "client.EntityRendererMixin",
     "misc.SquidEntityModelMixin"
   ],
   "injectors": {
