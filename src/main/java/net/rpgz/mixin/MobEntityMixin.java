@@ -4,7 +4,6 @@ import java.util.stream.StreamSupport;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.At;
 
@@ -164,6 +163,16 @@ public abstract class MobEntityMixin extends LivingEntity implements InventoryAc
         super.onDeath(damageSource);
     }
 
+    @Override
+    public ItemEntity dropStack(ItemStack stack) {
+        if (this.isDead()) {
+            addInventoryItem(stack);
+            return null;
+        } else {
+            return super.dropStack(stack);
+        }
+    }
+
     private void despawnParticlesServer() {
         for (int i = 0; i < 20; ++i) {
             double d = this.random.nextGaussian() * 0.025D;
@@ -189,12 +198,6 @@ public abstract class MobEntityMixin extends LivingEntity implements InventoryAc
         if (this.isDead()) {
             info.setReturnValue(false);
         }
-    }
-
-    @Redirect(method = "dropEquipment", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/mob/MobEntity;dropStack(Lnet/minecraft/item/ItemStack;)Lnet/minecraft/entity/ItemEntity;"))
-    private ItemEntity dropEquipmentMixin(MobEntity mobEntity, ItemStack itemStack) {
-        this.addInventoryItem(itemStack);
-        return null;
     }
 
     @Override

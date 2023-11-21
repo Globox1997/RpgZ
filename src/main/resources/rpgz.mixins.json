@@ -4,7 +4,6 @@
   "package": "net.rpgz.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "LivingEntityMixin",
     "MobEntityMixin",
     "HopperBlockEntityMixin",
     "ServerPlayerEntityMixin",
