@@ -1,6 +1,6 @@
 ### Added:
-- 
+- Added SpoiledZ compat
 ### Fixed:
 - 
 ### Changed:
-- Updated to mc 1.20.1
+- Tweaked internals

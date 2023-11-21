@@ -33,7 +33,6 @@
     "fabricloader": ">=${loader_version}",
     "cloth-config2": ">=${cloth_config_version}"
   },
-  "accessWidener": "rpgz.aw",
   "custom": {
     "mc-publish": {
       "modrinth": "pWpEhhT7",

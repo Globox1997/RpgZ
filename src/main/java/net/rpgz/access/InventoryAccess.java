@@ -7,5 +7,5 @@ public interface InventoryAccess {
 
     public SimpleInventory getInventory();
 
-    public void addingInventoryItems(ItemStack stack);
+    public void addInventoryItem(ItemStack stack);
 }

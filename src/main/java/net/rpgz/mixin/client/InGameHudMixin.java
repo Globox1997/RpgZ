@@ -30,9 +30,6 @@ public abstract class InGameHudMixin {
 
     private static final Identifier LOOT_BAG_TEXTURE = new Identifier("rpgz", "textures/sprite/loot_bag.png");
 
-    public InGameHudMixin(MinecraftClient client) {
-    }
-
     @Inject(method = "render", at = @At(value = "TAIL"))
     private void renderMixin(DrawContext context, float f, CallbackInfo info) {
         this.renderLootBag(context);

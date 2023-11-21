@@ -13,7 +13,8 @@
     "misc.PhantomEntityMixin",
     "misc.SquidEntityMixin",
     "misc.ChickenEntityMixin",
-    "misc.SheepEntityMixin"
+    "misc.SheepEntityMixin",
+    "access.SheepEntityAccessor"
   ],
   "client": [
     "client.LivingEntityRendererMixin",
@@ -21,6 +22,7 @@
     "client.ClientWorldMixin",
     "client.GameRendererMixin",
     "client.EntityRendererMixin",
+    "client.MobEntityRendererMixin",
     "misc.SquidEntityModelMixin"
   ],
   "injectors": {

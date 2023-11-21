@@ -1,4 +1,4 @@
-package net.rpgz.ui;
+package net.rpgz.screen;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -11,14 +11,14 @@ import net.minecraft.sound.SoundCategory;
 import net.rpgz.init.SoundInit;
 import net.rpgz.init.TagInit;
 
-public class LivingEntityScreenHandler extends ScreenHandler {
+public class MobEntityScreenHandler extends ScreenHandler {
     private final SimpleInventory inventory;
 
-    public LivingEntityScreenHandler(int syncId, PlayerInventory playerInventory) {
+    public MobEntityScreenHandler(int syncId, PlayerInventory playerInventory) {
         this(syncId, playerInventory, new SimpleInventory());
     }
 
-    public LivingEntityScreenHandler(int syncId, PlayerInventory playerInventory, SimpleInventory simpleInventory) {
+    public MobEntityScreenHandler(int syncId, PlayerInventory playerInventory, SimpleInventory simpleInventory) {
         super(ScreenHandlerType.GENERIC_9X1, syncId);
         this.inventory = simpleInventory;
 

@@ -9,6 +9,7 @@ import net.minecraft.entity.passive.SheepEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.rpgz.access.InventoryAccess;
+import net.rpgz.mixin.access.SheepEntityAccessor;
 
 @Mixin(SheepEntity.class)
 public abstract class SheepEntityMixin extends AnimalEntity {
@@ -19,9 +20,8 @@ public abstract class SheepEntityMixin extends AnimalEntity {
     @Override
     public void dropLoot(DamageSource source, boolean causedByPlayer) {
         super.dropLoot(source, causedByPlayer);
-        if ((Object) this instanceof SheepEntity) {
-            SheepEntity sheepEntity = (SheepEntity) (Object) this;
-            ((InventoryAccess) this).addingInventoryItems(new ItemStack(SheepEntity.DROPS.get(sheepEntity.getColor())));
+        if ((Object) this instanceof SheepEntity sheepEntity) {
+            ((InventoryAccess) this).addInventoryItem(new ItemStack(SheepEntityAccessor.getDROPS().get(sheepEntity.getColor())));
         }
 
     }

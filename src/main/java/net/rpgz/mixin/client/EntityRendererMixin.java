@@ -21,8 +21,8 @@ import net.minecraft.util.math.MathHelper;
 public abstract class EntityRendererMixin<T extends Entity> {
 
     @Inject(method = "getLight", at = @At("TAIL"), cancellable = true)
-    public final void getLightMixin(T entity, float tickDelta, CallbackInfoReturnable<Integer> info) {
-        if (entity.isLiving() && entity instanceof MobEntity && ((MobEntity) entity).isDead()) {
+    private final void getLightMixin(T entity, float tickDelta, CallbackInfoReturnable<Integer> info) {
+        if (entity instanceof MobEntity mobEntity && mobEntity.isDead()) {
             Box box = entity.getBoundingBox();
             BlockPos blockPos = new BlockPos(MathHelper.floor(box.getCenter().getX()), MathHelper.floor(box.maxY), MathHelper.floor(box.getCenter().getZ()));
             info.setReturnValue(LightmapTextureManager.pack(this.getBlockLight(entity, blockPos), this.getSkyLight(entity, blockPos)));
