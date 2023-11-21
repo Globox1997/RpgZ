@@ -215,9 +215,10 @@ public abstract class MobEntityMixin extends LivingEntity implements InventoryAc
         if (this.deathTime > 20) {
             if (!this.getWorld().isClient()) {
                 if (player.getStackInHand(hand).getItem() instanceof ShovelItem) {
-                    if (!this.inventory.isEmpty())
+                    if (!this.inventory.isEmpty()) {
                         for (int i = 0; i < this.inventory.size(); i++)
                             player.getInventory().offerOrDrop(this.inventory.getStack(i));
+                    }
                     this.inventory.clear();
                     if (!ConfigInit.CONFIG.despawn_immediately_when_empty) {
                         this.despawnParticlesServer();
@@ -227,11 +228,13 @@ public abstract class MobEntityMixin extends LivingEntity implements InventoryAc
                 }
                 if (!this.inventory.isEmpty()) {
                     if (player.isSneaking()) {
-                        for (int i = 0; i < this.inventory.size(); i++)
+                        for (int i = 0; i < this.inventory.size(); i++) {
                             player.getInventory().offerOrDrop(this.inventory.getStack(i));
+                        }
                         this.inventory.clear();
-                    } else
+                    } else {
                         player.openHandledScreen(new SimpleNamedScreenHandlerFactory((syncId, inv, p) -> new MobEntityScreenHandler(syncId, p.getInventory(), this.inventory), Text.literal("")));
+                    }
                     return ActionResult.SUCCESS;
                 }
             } else if ((Object) this instanceof PlayerEntity) {
