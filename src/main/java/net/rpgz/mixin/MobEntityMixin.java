@@ -12,6 +12,7 @@ import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.mob.FlyingEntity;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -151,6 +152,16 @@ public abstract class MobEntityMixin extends LivingEntity implements InventoryAc
 
             this.remove(RemovalReason.KILLED);
         }
+    }
+
+    @Override
+    public void onDeath(DamageSource damageSource) {
+        if (this.hasPassengers()) {
+            for (int i = 0; i < this.getPassengerList().size(); i++) {
+                this.getPassengerList().get(i).dismountVehicle();
+            }
+        }
+        super.onDeath(damageSource);
     }
 
     private void despawnParticlesServer() {
