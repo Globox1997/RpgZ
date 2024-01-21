@@ -4,6 +4,7 @@ import java.util.stream.StreamSupport;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.At;
 
@@ -45,9 +46,10 @@ public abstract class MobEntityMixin extends LivingEntity implements InventoryAc
         super(entityType, world);
     }
 
-    @Override
-    public void tickMovement() {
+    @Inject(method = "tickMovement", cancellable = true, at = @At("HEAD"))
+    public void fallAfterDeath(CallbackInfo ci) {
         if (this.deathTime > 19) {
+            ci.cancel();
             Box box = this.getBoundingBox();
             BlockPos blockPos = BlockPos.ofFloored(box.getCenter().getX(), box.minY, box.getCenter().getZ());
             if (this.getWorld().getBlockState(blockPos).isAir()) {
@@ -70,8 +72,6 @@ public abstract class MobEntityMixin extends LivingEntity implements InventoryAc
                 else if (this.getWorld().containsFluid(box.offset(0.0D, -box.getYLength() + (box.getYLength() / 5), 0.0D)) && !ConfigInit.CONFIG.surfacing_in_water)
                     this.setPos(this.getX(), this.getY() - 0.05D, this.getZ());
             }
-        } else {
-            super.tickMovement();
         }
     }
 
