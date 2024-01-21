@@ -47,7 +47,7 @@ public abstract class MobEntityMixin extends LivingEntity implements InventoryAc
     }
 
     @Inject(method = "tickMovement", cancellable = true, at = @At("HEAD"))
-    public void fallAfterDeath(CallbackInfo ci) {
+    private void fallAfterDeath(CallbackInfo ci) {
         if (this.deathTime > 19) {
             ci.cancel();
             Box box = this.getBoundingBox();
