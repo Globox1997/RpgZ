@@ -1,33 +1,19 @@
-buildscript {
-    repositories {
-        maven { url = 'https://files.minecraftforge.net/maven' }
-		maven { url = 'https://repo.spongepowered.org/maven' }
-        jcenter()
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
-		classpath 'org.parchmentmc:librarian:1.+'
-		classpath group: 'org.spongepowered', name: 'mixingradle', version: '0.7-SNAPSHOT'
-    }
-}
-
 plugins {
-  id "com.matthewprenger.cursegradle" version "1.4.0"
+	id 'eclipse'
+    id 'idea'
+    id 'maven-publish'
+    id 'net.minecraftforge.gradle' version '[6.0.24,6.2)'
+    id 'org.parchmentmc.librarian.forgegradle' version '1.+'
+    id 'org.spongepowered.mixin' version '0.7.+'
+	id "com.matthewprenger.cursegradle" version "1.4.0"
+	id "com.modrinth.minotaur" version "2.+"
 }
-
-apply plugin: 'net.minecraftforge.gradle'
-// Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
-apply plugin: 'eclipse'
-apply plugin: 'maven-publish'
-apply plugin: 'org.parchmentmc.librarian.forgegradle'
-apply plugin: 'org.spongepowered.mixin'
 
 mixin {
     add sourceSets.main, modId+".refmap.json"
 }
 
-archivesBaseName = project.archives_base_name
+archivesBaseName = project.modFilename
 version = project.mod_version
 group = project.maven_group
 
@@ -74,6 +60,8 @@ minecraft {
     }
 }
 
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
 repositories {
 	maven {  url = "https://repo.spongepowered.org/maven" } // mixin
 	maven {url "https://www.cursemaven.com"}
@@ -93,10 +81,10 @@ tasks.withType(JavaCompile) {
 	options.encoding = "UTF-8"
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-	classifier = "sources"
-	from sourceSets.main.allSource
-}
+//task sourcesJar(type: Jar, dependsOn: classes) {
+//	classifier = "sources"
+//	from sourceSets.main.allSource
+//}
 
 jar {
 	from "LICENSE"
@@ -125,23 +113,26 @@ curseforge {
 	}		
 }
 
+tasks.named('processResources', ProcessResources).configure {
+    var replaceProperties = [
+            minecraft_version: project.modMinecraftVersion,
+            modForgeVersion: project.modForgeVersion, mod_version: project.mod_version,
+            clothConfigVersion: project.clothConfigVersion,
+    ]
+    inputs.properties replaceProperties
+
+    filesMatching(['META-INF/mods.toml']) {
+        expand replaceProperties/* + [project: project]*/
+    }
+}
+
 // configure the maven publication
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
-			// add all the jars that should be included when publishing to maven
-			//artifact(remapJar) {
-			//	builtBy remapJar
-			//}
-			//artifact(sourcesJar) {
-			//	builtBy remapSourcesJar
-			//}
+			from components.java
 		}
 	}
-
-	// select the repositories you want to publish to
 	repositories {
-		// uncomment to publish to the local maven
-		// mavenLocal()
 	}
 }

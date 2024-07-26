@@ -31,7 +31,7 @@ public abstract class HopperBlockEntityMixin {
         if (ConfigInit.CONFIG.hopper_extracting) {
             ticking++;
             if (ticking >= 20) {
-                BlockPos pos = new BlockPos(hopper.getLevelX(), hopper.getLevelY(), hopper.getLevelZ());
+                BlockPos pos = BlockPos.containing(hopper.getLevelX(), hopper.getLevelY(), hopper.getLevelZ());
                 AABB box = new AABB(pos).expandTowards(0.0D, 1.0D, 0.0D);
                 List<LivingEntity> list = level.getEntitiesOfClass(LivingEntity.class, box,
                         EntitySelector.NO_SPECTATORS);

@@ -5,16 +5,14 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "rpgz.refmap.json",
   "mixins": [
-    "LivingEntityMixin",
-    "MobEntityMixin",
+    "MobMixin",
     "HopperBlockEntityMixin",
     "ServerPlayerMixin",
     "misc/BlazeEntityMixin",
     "misc/EndermanEntityMixin",
     "misc/PhantomEntityMixin",
     "misc/SquidEntityMixin",
-    "misc/ChickenEntityMixin",
-    "misc/SheepEntityMixin"
+    "misc/ChickenEntityMixin"
   ],
   "client": [
     "LivingEntityRendererMixin",

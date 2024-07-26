@@ -37,7 +37,6 @@ extends EntityRenderer<T> implements RenderLayerParent<T, M> {
 
 	public LivingEntityRendererMixin(EntityRendererProvider.Context dispatcher, M entityModel) {
 		super(dispatcher);
-		this.model = entityModel;
 	}
 
 	@Inject(method = "getOverlayCoords", at = @At("HEAD"), cancellable = true)

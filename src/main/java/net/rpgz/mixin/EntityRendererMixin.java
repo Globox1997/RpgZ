@@ -23,7 +23,7 @@ public abstract class EntityRendererMixin<T extends Entity> {
     public final void getLightMixin(T entity, float tickDelta, CallbackInfoReturnable<Integer> info) {
         if (entity.showVehicleHealth() && entity instanceof Mob && ((Mob) entity).isDeadOrDying()) {
             AABB box = entity.getBoundingBox();
-            BlockPos blockPos = new BlockPos(box.getCenter().x(), box.maxY, box.getCenter().z());
+            BlockPos blockPos = BlockPos.containing(box.getCenter().x(), box.maxY, box.getCenter().z());
             info.setReturnValue(LightTexture.pack(this.getBlockLightLevel(entity, blockPos),
                     this.getSkyLightLevel(entity, blockPos)));
         }
