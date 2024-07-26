@@ -1,7 +1,9 @@
 package net.rpgz.mixin;
 
+import java.util.List;
 import java.util.stream.StreamSupport;
 
+import net.rpgz.ui.LivingEntityScreenHandler9x3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -45,10 +47,12 @@ import net.rpgz.ui.LivingEntityScreenHandler;
 @Mixin(Mob.class)
 public abstract class MobMixin extends LivingEntity implements IInventoryAccess {
 
-	SimpleContainer dropInventory = new SimpleContainer(9);
+	SimpleContainer dropInventory = new SimpleContainer(18);
 
 	@Shadow protected float getEquipmentDropChance(EquipmentSlot slot) { return 0; }
 	@Shadow protected BodyRotationControl createBodyControl() { return null; }
+
+	@Shadow private boolean spawnCancelled;
 
 	public MobMixin(EntityType<? extends LivingEntity> entityType, Level world) {
 		super(entityType, world);
@@ -115,10 +119,22 @@ public abstract class MobMixin extends LivingEntity implements IInventoryAccess 
 							player.getInventory().placeItemBackInInventory(this.dropInventory.getItem(i));
 						this.dropInventory.clearContent();
 					}
-					else
-						player.openMenu(new SimpleMenuProvider(
-								(syncId, inv, p) -> new LivingEntityScreenHandler(syncId, p.getInventory(), this.dropInventory), Component.literal("")));
-					return InteractionResult.SUCCESS;
+					else{
+						int itemsSize = 0;
+						for (int i = 0; i < dropInventory.getContainerSize(); i++){
+							ItemStack stack = dropInventory.getItem(i);
+							if(!stack.isEmpty()) itemsSize++;
+						}
+						if(itemsSize < 9){
+							player.openMenu(new SimpleMenuProvider(
+									(syncId, inv, p) -> new LivingEntityScreenHandler(syncId, p.getInventory(), this.dropInventory), Component.literal("")));
+
+						}
+						else
+							player.openMenu(new SimpleMenuProvider(
+									(syncId, inv, p) -> new LivingEntityScreenHandler9x3(syncId, p.getInventory(), this.dropInventory), Component.literal("")));
+						return InteractionResult.SUCCESS;
+					}
 				}
 			} else if ((Object) this instanceof Player) {
 				return super.interactAt(player, hitPos, hand);
