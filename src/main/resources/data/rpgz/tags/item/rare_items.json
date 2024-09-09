@@ -1,7 +1,7 @@
 {
   "replace": false,
   "values": [
-    "#minecraft:music_discs",
+    "#minecraft:creeper_drop_music_discs",
     "minecraft:diamond",
     "minecraft:gold_ingot",
     "minecraft:gold_nugget",
