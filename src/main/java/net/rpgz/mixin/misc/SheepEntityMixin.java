@@ -1,5 +1,9 @@
 package net.rpgz.mixin.misc;
 
+import net.minecraft.item.ItemConvertible;
+import net.minecraft.util.DyeColor;
+import net.rpgz.util.RpgHelper;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 
 import net.minecraft.entity.EntityType;
@@ -8,11 +12,19 @@ import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.passive.SheepEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
-import net.rpgz.access.InventoryAccess;
-import net.rpgz.mixin.access.SheepEntityAccessor;
+import org.spongepowered.asm.mixin.Mutable;
+import org.spongepowered.asm.mixin.Shadow;
+
+import java.util.Map;
 
 @Mixin(SheepEntity.class)
 public abstract class SheepEntityMixin extends AnimalEntity {
+
+    @Shadow
+    @Mutable
+    @Final
+    private static Map<DyeColor, ItemConvertible> DROPS;
+
     public SheepEntityMixin(EntityType<? extends AnimalEntity> entityType, World world) {
         super(entityType, world);
     }
@@ -21,7 +33,7 @@ public abstract class SheepEntityMixin extends AnimalEntity {
     public void dropLoot(DamageSource source, boolean causedByPlayer) {
         super.dropLoot(source, causedByPlayer);
         if ((Object) this instanceof SheepEntity sheepEntity) {
-            ((InventoryAccess) this).addInventoryItem(new ItemStack(SheepEntityAccessor.getDROPS().get(sheepEntity.getColor())));
+            RpgHelper.getDeadMobInventory(sheepEntity).addStack(new ItemStack(DROPS.get(sheepEntity.getColor())));
         }
 
     }
