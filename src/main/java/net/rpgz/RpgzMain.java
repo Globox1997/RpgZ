@@ -1,9 +1,8 @@
 package net.rpgz;
 
 import net.fabricmc.api.ModInitializer;
-import net.rpgz.init.ConfigInit;
-import net.rpgz.init.SoundInit;
-import net.rpgz.init.TagInit;
+import net.rpgz.init.*;
+import net.rpgz.network.RpgServerPacket;
 
 public class RpgzMain implements ModInitializer {
 
@@ -12,5 +11,7 @@ public class RpgzMain implements ModInitializer {
         ConfigInit.init();
         SoundInit.init();
         TagInit.init();
+        RpgServerPacket.init();
+        EventInit.init();
     }
 }

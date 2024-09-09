@@ -12,8 +12,7 @@
     "misc.PhantomEntityMixin",
     "misc.SquidEntityMixin",
     "misc.ChickenEntityMixin",
-    "misc.SheepEntityMixin",
-    "access.SheepEntityAccessor"
+    "misc.SheepEntityMixin"
   ],
   "client": [
     "client.LivingEntityRendererMixin",

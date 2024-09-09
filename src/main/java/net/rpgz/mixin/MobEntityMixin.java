@@ -2,15 +2,17 @@ package net.rpgz.mixin;
 
 import java.util.stream.StreamSupport;
 
+import net.minecraft.entity.*;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.util.math.*;
+import net.rpgz.util.DeadMobInventory;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.At;
 
-import net.minecraft.entity.EntityPose;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.mob.FlyingEntity;
 import net.minecraft.entity.mob.MobEntity;
@@ -21,32 +23,40 @@ import net.minecraft.item.ShovelItem;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.World;
-import net.rpgz.access.InventoryAccess;
 import net.rpgz.init.ConfigInit;
 import net.rpgz.init.TagInit;
 import net.rpgz.screen.MobEntityScreenHandler;
-import net.rpgz.util.RpgHelper;
 
 @Mixin(MobEntity.class)
-public abstract class MobEntityMixin extends LivingEntity implements InventoryAccess {
+public abstract class MobEntityMixin extends LivingEntity implements DeadMobInventory {
 
-    private SimpleInventory inventory = new SimpleInventory(9);
+    @Unique
+    private final SimpleInventory deadMobInventory = new SimpleInventory(9);
 
     public MobEntityMixin(EntityType<? extends LivingEntity> entityType, World world) {
         super(entityType, world);
     }
 
-    @Override
-    public void tickMovement() {
+    @Inject(method = "writeCustomDataToNbt", at = @At("TAIL"))
+    private void writeCustomDataToNbtMixin(NbtCompound nbt, CallbackInfo info) {
+        if (this.isDead()) {
+            this.writeDeadMobInventory(nbt, this.getRegistryManager());
+        }
+    }
+
+    @Inject(method = "readCustomDataFromNbt", at = @At("TAIL"))
+    private void readCustomDataFromNbtMixin(NbtCompound nbt, CallbackInfo info) {
+        if (this.isDead()) {
+            this.readDeadMobInventory(nbt, this.getRegistryManager());
+        }
+    }
+
+    @Inject(method = "tickMovement", at = @At("HEAD"), cancellable = true)
+    private void tickMovementMixin(CallbackInfo info) {
         if (this.deathTime > 19) {
             Box box = this.getBoundingBox();
             BlockPos blockPos = BlockPos.ofFloored(box.getCenter().getX(), box.minY, box.getCenter().getZ());
@@ -61,17 +71,16 @@ public abstract class MobEntityMixin extends LivingEntity implements InventoryAc
                     this.setPos(this.getX(), this.getY() - 0.1D, this.getZ());
                 }
             } else
-            // Water floating
-            if (this.getWorld().containsFluid(box.offset(0.0D, box.getLengthY(), 0.0D))) {
-                if (ConfigInit.CONFIG.surfacing_in_water)
-                    this.setPos(this.getX(), this.getY() + 0.03D, this.getZ());
-                if (this.canWalkOnFluid(this.getWorld().getFluidState(this.getBlockPos())))
-                    this.setPos(this.getX(), this.getY() + 0.03D, this.getZ());
-                else if (this.getWorld().containsFluid(box.offset(0.0D, -box.getLengthY() + (box.getLengthY() / 5), 0.0D)) && !ConfigInit.CONFIG.surfacing_in_water)
-                    this.setPos(this.getX(), this.getY() - 0.05D, this.getZ());
-            }
-        } else {
-            super.tickMovement();
+                // Water floating
+                if (this.getWorld().containsFluid(box.offset(0.0D, box.getLengthY(), 0.0D))) {
+                    if (ConfigInit.CONFIG.surfacing_in_water)
+                        this.setPos(this.getX(), this.getY() + 0.03D, this.getZ());
+                    if (this.canWalkOnFluid(this.getWorld().getFluidState(this.getBlockPos())))
+                        this.setPos(this.getX(), this.getY() + 0.03D, this.getZ());
+                    else if (this.getWorld().containsFluid(box.offset(0.0D, -box.getLengthY() + (box.getLengthY() / 5), 0.0D)) && !ConfigInit.CONFIG.surfacing_in_water)
+                        this.setPos(this.getX(), this.getY() - 0.05D, this.getZ());
+                }
+            info.cancel();
         }
     }
 
@@ -80,10 +89,12 @@ public abstract class MobEntityMixin extends LivingEntity implements InventoryAc
     protected void updatePostDeath() {
         ++this.deathTime;
         if (this.deathTime == 1) {
-            if (this.isOnFire())
+            if (this.isOnFire()) {
                 this.extinguish();
-            if (this.getVehicle() != null)
+            }
+            if (this.getVehicle() != null) {
                 this.stopRiding();
+            }
         }
 
         if (this.deathTime >= 20) {
@@ -129,25 +140,26 @@ public abstract class MobEntityMixin extends LivingEntity implements InventoryAc
                 Box checkBoxThree = new Box(box.maxX - (box.getLengthX() / 3D), box.maxY, box.maxZ - (box.getLengthZ() / 3D), box.maxX + 0.001D - (box.getLengthX() / 3D), box.maxY + 0.001D,
                         box.maxZ + 0.001D - (box.getLengthZ() / 3D));
                 if (this.getWorld().isRegionLoaded(blockPos, blockPos2)) {
-                    if (!this.inventory.isEmpty()
+                    if (!this.getDeadMobInventory().isEmpty()
                             && (((!StreamSupport.stream(this.getWorld().getBlockCollisions(this, checkBox).spliterator(), false).allMatch(VoxelShape::isEmpty)
-                                    || !StreamSupport.stream(this.getWorld().getBlockCollisions(this, checkBoxThree).spliterator(), false).allMatch(VoxelShape::isEmpty))
-                                    && (!StreamSupport.stream(this.getWorld().getBlockCollisions(this, checkBoxTwo).spliterator(), false).allMatch(VoxelShape::isEmpty)
-                                            || !StreamSupport.stream(this.getWorld().getBlockCollisions(this, checkBoxThree).spliterator(), false).allMatch(VoxelShape::isEmpty)))
-                                    || this.isBaby() || (ConfigInit.CONFIG.drop_unlooted && this.deathTime > ConfigInit.CONFIG.drop_after_ticks))
+                            || !StreamSupport.stream(this.getWorld().getBlockCollisions(this, checkBoxThree).spliterator(), false).allMatch(VoxelShape::isEmpty))
+                            && (!StreamSupport.stream(this.getWorld().getBlockCollisions(this, checkBoxTwo).spliterator(), false).allMatch(VoxelShape::isEmpty)
+                            || !StreamSupport.stream(this.getWorld().getBlockCollisions(this, checkBoxThree).spliterator(), false).allMatch(VoxelShape::isEmpty)))
+                            || this.isBaby() || (ConfigInit.CONFIG.drop_unlooted && this.deathTime > ConfigInit.CONFIG.drop_after_ticks))
                             || this.getType().isIn(TagInit.EXCLUDED_ENTITIES) || ConfigInit.CONFIG.excluded_entities.contains(this.getType().toString().replace("entity.", "").replace(".", ":"))) {
 
-                        this.inventory.clearToList().forEach(this::dropStack);
+                        this.getDeadMobInventory().clearToList().forEach(this::dropStack);
                     }
                 }
             }
             // world.getClosestPlayer(this,// 1.0D)// !=// null// || Testing purpose
         }
 
-        if ((!this.getWorld().isClient() && this.deathTime >= 20 && this.inventory.isEmpty() && ConfigInit.CONFIG.despawn_immediately_when_empty)
+        if ((!this.getWorld().isClient() && this.deathTime >= 20 && (this.getDeadMobInventory() == null || this.getDeadMobInventory().isEmpty()) && ConfigInit.CONFIG.despawn_immediately_when_empty)
                 || (this.deathTime >= ConfigInit.CONFIG.despawn_corps_after_ticks)) {
-            if (!this.getWorld().isClient()) // Make sure only on server particle
+            if (!this.getWorld().isClient()) { // Make sure only on server particle
                 this.despawnParticlesServer();
+            }
 
             this.remove(RemovalReason.KILLED);
         }
@@ -155,9 +167,17 @@ public abstract class MobEntityMixin extends LivingEntity implements InventoryAc
 
     @Override
     public void onDeath(DamageSource damageSource) {
-        if (this.hasPassengers()) {
-            for (int i = 0; i < this.getPassengerList().size(); i++) {
-                this.getPassengerList().get(i).dismountVehicle();
+        if (!this.getWorld().isClient()) {
+            if (this.hasPassengers()) {
+                for (int i = 0; i < this.getPassengerList().size(); i++) {
+                    this.getPassengerList().get(i).dismountVehicle();
+                }
+            }
+            if (this instanceof InventoryOwner inventoryOwner && !inventoryOwner.getInventory().isEmpty()) {
+                for (ItemStack stack : inventoryOwner.getInventory().getHeldStacks()) {
+                    this.getDeadMobInventory().addStack(stack);
+                }
+
             }
         }
         super.onDeath(damageSource);
@@ -166,7 +186,7 @@ public abstract class MobEntityMixin extends LivingEntity implements InventoryAc
     @Override
     public ItemEntity dropStack(ItemStack stack) {
         if (this.isDead()) {
-            addInventoryItem(stack);
+            this.getDeadMobInventory().addStack(stack);
             return null;
         } else {
             return super.dropStack(stack);
@@ -201,13 +221,8 @@ public abstract class MobEntityMixin extends LivingEntity implements InventoryAc
     }
 
     @Override
-    public void addInventoryItem(ItemStack stack) {
-        RpgHelper.addStackToInventory((MobEntity) (Object) this, stack, this.getWorld());
-    }
-
-    @Override
-    public SimpleInventory getInventory() {
-        return this.inventory;
+    public SimpleInventory getDeadMobInventory() {
+        return this.deadMobInventory;
     }
 
     @Override
@@ -215,25 +230,26 @@ public abstract class MobEntityMixin extends LivingEntity implements InventoryAc
         if (this.deathTime > 20) {
             if (!this.getWorld().isClient()) {
                 if (player.getStackInHand(hand).getItem() instanceof ShovelItem) {
-                    if (!this.inventory.isEmpty()) {
-                        for (int i = 0; i < this.inventory.size(); i++)
-                            player.getInventory().offerOrDrop(this.inventory.getStack(i));
+                    if (!this.getDeadMobInventory().isEmpty()) {
+                        for (int i = 0; i < this.getDeadMobInventory().size(); i++) {
+                            player.getInventory().offerOrDrop(this.getDeadMobInventory().getStack(i));
+                        }
+                        this.getDeadMobInventory().clear();
                     }
-                    this.inventory.clear();
                     if (!ConfigInit.CONFIG.despawn_immediately_when_empty) {
                         this.despawnParticlesServer();
                         this.remove(RemovalReason.KILLED);
                     }
                     return ActionResult.SUCCESS;
                 }
-                if (!this.inventory.isEmpty()) {
+                if (!this.getDeadMobInventory().isEmpty()) {
                     if (player.isSneaking()) {
-                        for (int i = 0; i < this.inventory.size(); i++) {
-                            player.getInventory().offerOrDrop(this.inventory.getStack(i));
+                        for (int i = 0; i < this.getDeadMobInventory().size(); i++) {
+                            player.getInventory().offerOrDrop(this.getDeadMobInventory().getStack(i));
                         }
-                        this.inventory.clear();
+                        this.getDeadMobInventory().clear();
                     } else {
-                        player.openHandledScreen(new SimpleNamedScreenHandlerFactory((syncId, inv, p) -> new MobEntityScreenHandler(syncId, p.getInventory(), this.inventory), Text.literal("")));
+                        player.openHandledScreen(new SimpleNamedScreenHandlerFactory((syncId, inv, p) -> new MobEntityScreenHandler(syncId, p.getInventory(), this.getDeadMobInventory()), this.getName()));
                     }
                     return ActionResult.SUCCESS;
                 }

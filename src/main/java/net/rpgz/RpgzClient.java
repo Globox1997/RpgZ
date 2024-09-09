@@ -10,6 +10,7 @@ import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
+import net.rpgz.network.RpgClientPacket;
 
 @Environment(EnvType.CLIENT)
 public class RpgzClient implements ClientModInitializer {
@@ -32,6 +33,7 @@ public class RpgzClient implements ClientModInitializer {
                 }
             }
         });
+        RpgClientPacket.init();
     }
 
 }

@@ -27,8 +27,7 @@ public class ServerPlayerEntityMixin {
             List<HostileEntity> list) {
         if (!list.isEmpty()) {
             List<HostileEntity> removeList = new ArrayList<HostileEntity>();
-            for (int o = 0; o < list.size(); ++o) {
-                HostileEntity entityFromList = (HostileEntity) list.get(o);
+            for (HostileEntity entityFromList : list) {
                 if (entityFromList.isDead()) {
                     removeList.add(entityFromList);
                 }

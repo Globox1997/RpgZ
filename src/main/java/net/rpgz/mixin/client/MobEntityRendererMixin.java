@@ -35,7 +35,7 @@ public abstract class MobEntityRendererMixin<T extends MobEntity, M extends Enti
             if (f > 1.0F) {
                 f = 1.0F;
             }
-            Float lyinganglebonus = 1F;
+            float lyinganglebonus = 1F;
             if (this.getLyingAngle(entity) > 90F) {
                 lyinganglebonus = 2.5F;
             }

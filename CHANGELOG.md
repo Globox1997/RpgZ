@@ -1,6 +1,6 @@
 ### Added:
 - 
 ### Fixed:
-- 
+- Fixed inventory owner bug
 ### Changed:
-- Updated to mc 1.21
+- 
