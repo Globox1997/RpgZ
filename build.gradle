@@ -5,148 +5,31 @@ plugins {
     id 'net.minecraftforge.gradle' version '[6.0.24,6.2)'
     id 'org.parchmentmc.librarian.forgegradle' version '1.+'
     id 'org.spongepowered.mixin' version '0.7.+'
-	id "com.matthewprenger.cursegradle" version "1.4.0"
+    id "me.modmuss50.mod-publish-plugin" version "0.7.4"
 	id "com.modrinth.minotaur" version "2.+"
 }
+apply from: "main.gradle"
+apply plugin: 'net.minecraftforge.gradle'
+// Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
+apply plugin: 'eclipse'
+apply plugin: 'maven-publish'
+apply plugin: 'org.parchmentmc.librarian.forgegradle'
+apply plugin: 'org.spongepowered.mixin'
 
-mixin {
-    add sourceSets.main, modId+".refmap.json"
-}
-
-archivesBaseName = project.modFilename
-version = project.mod_version
-group = project.maven_group
-
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
-
-println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
-println('Mod Name: ' + modFilename + ', Mod Version: ' + mod_version + ', Minecraft Version: ' + modMinecraftVersion + ', Forge Version: ' + modForgeVersion)
-minecraft {
-    mappings channel: mappingsChannel, version: mappingsVersion
-    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
-    reobf = false
-    copyIdeResources = true
-    runs {
-        client {
-            workingDirectory project.file('run/Forge-client')
-            property 'forge.logging.markers', 'REGISTRIES'
-			property 'mixin.env.remapRefMap', 'true'
-			property 'mixin.env.refMapRemappingFile', "${buildDir}/createSrgToMcp/output.srg"
-			arg "-mixin.config="+modId+".mixins.json"
-
-            property 'forge.logging.console.level', 'debug'
-
-            mods {
-                modId {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        server {
-            workingDirectory project.file('run/Forge-server')
-            property 'forge.logging.markers', 'REGISTRIES'
-			property 'mixin.env.remapRefMap', 'true'
-			property 'mixin.env.refMapRemappingFile', "${buildDir}/createSrgToMcp/output.srg"
-			arg "-mixin.config="+modId+".mixins.json"
-
-            // Recommended logging level for the console
-            property 'forge.logging.console.level', 'debug'
-
-            mods {
-                modId {
-                    source sourceSets.main
-                }
-            }
-        }
-    }
-}
-
-
-eclipse {
-    synchronizationTasks 'genEclipseRuns'
-}
-
-sourceSets.each {
-    def dir = layout.buildDirectory.dir("sourcesSets/$it.name")
-    it.output.resourcesDir = dir
-    it.java.destinationDirectory = dir
-}
-
+// Should exist on all loaders and is loader specific
 repositories {
-	maven {  url = "https://repo.spongepowered.org/maven" } // mixin
-	maven {url "https://www.cursemaven.com"}
-    maven {url "https://maven.shedaniel.me/"} // cloth config
-    maven {url "https://modmaven.dev/" } //UnionLib
+	maven {url "https://modmaven.dev/" }// UnionLib
+	maven {url "https://girafi.dk/maven/"}
+	maven {url "https://www.cursemaven.com"} //CurseForge
+    maven {url = "https://repo.spongepowered.org/maven"} // mixin
 }
 
 dependencies {
-	minecraft 'net.minecraftforge:forge:' + modMinecraftVersion + '-' + modForgeVersion
-	implementation('net.sf.jopt-simple:jopt-simple:5.0.4') { version { strictly '5.0.4' } }
+	minecraft "net.minecraftforge:forge:${_minecraft_version}-" + _loader_version
 	annotationProcessor "org.spongepowered:mixin:"+modMixinVersion+":processor"
-	implementation "org.spongepowered:mixin:"+modMixinVersion+""
-	implementation fileTree(include: ['*.jar'], dir: 'libs')
-	//implementation fg.deobf("me.shedaniel.cloth:cloth-config-forge:"+clothConfigVersion)
-	implementation ("com.stereowalker.unionlib:UnionLib:"+modMinecraftVersion+"-"+unionlibVersion+"-"+"Forge"+"")
-
+	implementation('net.sf.jopt-simple:jopt-simple:5.0.4') { version { strictly '5.0.4' } }
+	
+	implementation ("com.stereowalker.unionlib:UnionLib:${_minecraft_version}-${_unionlib_version}-${_loader}")
 }
 
-tasks.withType(JavaCompile) {
-	options.encoding = "UTF-8"
-}
-
-//task sourcesJar(type: Jar, dependsOn: classes) {
-//	classifier = "sources"
-//	from sourceSets.main.allSource
-//}
-
-jar {
-	from "LICENSE"
-    manifest {
-        attributes([
-            // Existing properties here
-            "MixinConfigs": modId+".mixins.json"
-        ])
-    }
-}
-
-curseforge {
-    project {
-    	id = modCurseId
-		apiKey = "$System.env.CURSEFORGEKEY"
-		changelog = file('changelog.md')
-		releaseType = 'release'
-		addGameVersion(modMinecraftVersion)
-        addGameVersion("Forge")
-        relations {
-      		requiredDependency 'cloth-config'
-		}	
-		mainArtifact(jar) {
-			displayName = modFilename+"-$project.version"
-		}
-	}		
-}
-
-tasks.named('processResources', ProcessResources).configure {
-    var replaceProperties = [
-            minecraft_version: project.modMinecraftVersion,
-            modForgeVersion: project.modForgeVersion, mod_version: project.mod_version,
-            unionlibVersion: project.unionlibVersion,
-    ]
-    inputs.properties replaceProperties
-
-    filesMatching(['META-INF/mods.toml']) {
-        expand replaceProperties/* + [project: project]*/
-    }
-}
-
-// configure the maven publication
-publishing {
-	publications {
-		mavenJava(MavenPublication) {
-			from components.java
-		}
-	}
-	repositories {
-	}
-}
+// These aren't loader specific and should exist on all loaders

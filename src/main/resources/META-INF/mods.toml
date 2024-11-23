@@ -1,42 +1,32 @@
-
 modLoader="javafml"
-loaderVersion="[44,)"
-license="GLPv3"
-issueTrackerURL="https://github.com/Globox1997/RpgZ/issues"
+loaderVersion="[${loader_version_min},${loader_version_max})"
+license="${mod_license}"
+issueTrackerURL="${mod_issue_tracker}"
 logoFile="icon.png"
 [[mods]]
-modId="rpgz"
+modId="${mod_id}"
 version="${mod_version}"
-displayName="RpgZ"
-updateJSONURL="https://raw.githubusercontent.com/Globox1997/RpgZ/master/update.json"
-displayURL="https://www.curseforge.com/minecraft/mc-mods/rpgz"
-credits="Obviously you for downloading this mod"
-authors="Globox_Z, Stereowalker"
-description='''
-Rpg Style Looting
-'''
-# A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.
-[[dependencies.rpgz]] #optional
-    # the modid of the dependency
+displayName="${mod_name}"
+updateJSONURL=""
+displayURL="${mod_page}"
+credits="I'd like to thank all my supporters on Patreon for giving me a reason to continue modding, and you for downloading and playing with this mod"
+authors="${mod_authors}"
+description='''${mod_description}'''
+[[dependencies.${mod_id}]] #optional
     modId="forge" #mandatory
-    # Does this dependency have to exist - if not, ordering below must be specified
     mandatory=true #mandatory
-    # The version range of the dependency
-    versionRange="[${modForgeVersion},)" #mandatory
-    # An ordering relationship for the dependency - BEFORE or AFTER required if the relationship is not mandatory
+    versionRange="[50,)" #mandatory
     ordering="NONE"
-    # Side this dependency is applied on - BOTH, CLIENT or SERVER
     side="BOTH"
-# Here's another dependency
-[[dependencies.rpgz]]
+[[dependencies.${mod_id}]]
     modId="minecraft"
     mandatory=true
-    versionRange="[${minecraft_version},)"
+    versionRange="[${minecraft_version_min},${minecraft_version_max})"
     ordering="NONE"
     side="BOTH"
-[[dependencies.rpgz]]
+[[dependencies.${mod_id}]]
     modId="unionlib"
     mandatory=true
-    versionRange="[${unionlibVersion},)"
-    ordering="NONE"
+    versionRange="[${unionlib_version_min},${unionlib_version_max})"
+    ordering="BEFORE"
     side="BOTH"
