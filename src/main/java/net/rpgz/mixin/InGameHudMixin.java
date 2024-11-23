@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.stereowalker.unionlib.util.VersionHelper;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
@@ -36,7 +37,6 @@ public abstract class InGameHudMixin {
   @Inject(method = "render", at = @At(value = "TAIL"))
   private void renderIngameGuiMixin(GuiGraphics pGuiGraphics, float f, CallbackInfo info) {
     this.renderLootBag(pGuiGraphics);
-    System.out.println("Graphics");
   }
 
   private void renderLootBag(GuiGraphics guiComponent) {
@@ -47,7 +47,7 @@ public abstract class InGameHudMixin {
         if (deadBody != null && deadBody.deathTime > 20) {
           int scaledWidth = this.minecraft.getWindow().getGuiScaledWidth();
           int scaledHeight = this.minecraft.getWindow().getGuiScaledHeight();
-          guiComponent.blit(new ResourceLocation("rpgz:textures/sprite/loot_bag.png"), (scaledWidth / 2), (scaledHeight / 2) - 16, 0.0F, 0.0F, 16, 16, 16,
+          guiComponent.blit(VersionHelper.toLoc("rpgz:textures/sprite/loot_bag.png"), (scaledWidth / 2), (scaledHeight / 2) - 16, 0.0F, 0.0F, 16, 16, 16,
               16);
         }
       }

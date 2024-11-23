@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Logger;
 import com.stereowalker.unionlib.api.collectors.ConfigCollector;
 import com.stereowalker.unionlib.mod.MinecraftMod;
 import com.stereowalker.unionlib.mod.ServerSegment;
+import com.stereowalker.unionlib.util.VersionHelper;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
@@ -75,6 +76,6 @@ public class Rpgz extends MinecraftMod {
 
 	public static ResourceLocation locationz(String name)
 	{
-		return new ResourceLocation(MOD_ID, name);
+		return VersionHelper.toLoc(MOD_ID, name);
 	}
 }
