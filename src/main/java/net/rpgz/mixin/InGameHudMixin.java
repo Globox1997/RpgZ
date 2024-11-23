@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.stereowalker.unionlib.util.VersionHelper;
 
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
@@ -35,7 +36,7 @@ public abstract class InGameHudMixin {
   }
 
   @Inject(method = "render", at = @At(value = "TAIL"))
-  private void renderIngameGuiMixin(GuiGraphics pGuiGraphics, float f, CallbackInfo info) {
+  private void renderIngameGuiMixin(GuiGraphics pGuiGraphics, DeltaTracker f, CallbackInfo info) {
     this.renderLootBag(pGuiGraphics);
   }
 
