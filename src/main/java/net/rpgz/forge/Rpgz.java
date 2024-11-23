@@ -9,12 +9,10 @@ import com.stereowalker.unionlib.mod.ServerSegment;
 import com.stereowalker.unionlib.util.VersionHelper;
 
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.common.NeoForge;
 import net.rpgz.RpgzClientSegment;
 import net.rpgz.init.ConfigInit;
 import net.rpgz.init.TagInit;
@@ -52,11 +50,10 @@ public class Rpgz extends MinecraftMod {
 	{
 		super("rpgz", () -> new RpgzClientSegment(), () -> new ServerSegment());
 		instance = this;
-		final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 		TagInit.init();
-		modEventBus.addListener(this::setup);
-		modEventBus.addListener(this::clientSetup);
-		MinecraftForge.EVENT_BUS.register(this);
+		eventBus().addListener(this::setup);
+		eventBus().addListener(this::clientSetup);
+//		NeoForge.EVENT_BUS.register(this);
 //		NetRegistry.registerMessages();
 	}
 	

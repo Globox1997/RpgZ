@@ -4,7 +4,7 @@ import com.stereowalker.unionlib.util.VersionHelper;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraftforge.registries.RegisterEvent.RegisterHelper;
+import net.neoforged.neoforge.registries.RegisterEvent.RegisterHelper;
 
 public class SoundInit {
 

@@ -1,17 +1,18 @@
 package net.rpgz.forge;
 
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegisterEvent;
+import net.minecraft.core.registries.Registries;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.EventBusSubscriber.Bus;
+import net.neoforged.neoforge.registries.RegisterEvent;
 import net.rpgz.init.SoundInit;
 
-@Mod.EventBusSubscriber(bus=Mod.EventBusSubscriber.Bus.MOD, modid = Rpgz.MOD_ID)
+@EventBusSubscriber(bus=Bus.MOD, modid = Rpgz.MOD_ID)
 public class RegistryEvents
 {
 	@SubscribeEvent
 	public static void registerSoundEvents(final RegisterEvent event) {
-		event.register(ForgeRegistries.Keys.SOUND_EVENTS,
+		event.register(Registries.SOUND_EVENT,
 				helper -> {
 					SoundInit.registerAll(helper);
 				});
