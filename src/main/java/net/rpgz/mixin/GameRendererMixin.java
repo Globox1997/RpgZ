@@ -35,7 +35,7 @@ public class GameRendererMixin {
 		if (this.minecraft.hitResult.getType() == HitResult.Type.BLOCK) {
 			BlockPos pos = ((BlockHitResult) this.minecraft.hitResult).getBlockPos();
 			if (!this.minecraft.level.getBlockState(pos).isCollisionShapeFullBlock(this.minecraft.level, pos)) {
-				double reachDinstance = (double) this.minecraft.gameMode.getPickRange();
+				double reachDinstance = (double) this.minecraft.player.entityInteractionRange();
 				Vec3 vec3d = this.minecraft.player.getEyePosition(tickDelta);
 				Vec3 vec3d2 = this.minecraft.player.getViewVector(tickDelta);
 				Vec3 vec3d3 = vec3d.add(vec3d2.x * reachDinstance, vec3d2.y * reachDinstance, vec3d2.z * reachDinstance);

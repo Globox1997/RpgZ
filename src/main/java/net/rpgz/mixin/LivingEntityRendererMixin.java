@@ -93,7 +93,7 @@ extends EntityRenderer<T> implements RenderLayerParent<T, M> {
 
 
 	@Inject(method = "setupRotations", at = @At("HEAD"))
-	public void applyRotationsMixin(T entity, PoseStack matrices, float animationProgress, float bodyYaw, float tickDelta, CallbackInfo info) {
+	public void applyRotationsMixin(T entity, PoseStack matrices, float animationProgress, float bodyYaw, float tickDelta, float scale, CallbackInfo info) {
 		if (entity instanceof Mob && entity.deathTime > 0) {
 			this.shadowRadius = 0F;
 			float f = ((float) entity.deathTime + tickDelta - 1.0F) / 20.0F * 1.6F;
@@ -114,8 +114,8 @@ extends EntityRenderer<T> implements RenderLayerParent<T, M> {
 		}
 	}
 
-	@Redirect(method = "Lnet/minecraft/client/renderer/entity/LivingEntityRenderer;setupRotations(Lnet/minecraft/world/entity/LivingEntity;Lcom/mojang/blaze3d/vertex/PoseStack;FFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/LivingEntityRenderer;isShaking(Lnet/minecraft/world/entity/LivingEntity;)Z"))
-	public boolean isShakingMixin(LivingEntityRenderer<T, M> renderer, T entity, T secondentity, PoseStack matrix, float o, float k, float m) {
+	@Redirect(method = "Lnet/minecraft/client/renderer/entity/LivingEntityRenderer;setupRotations(Lnet/minecraft/world/entity/LivingEntity;Lcom/mojang/blaze3d/vertex/PoseStack;FFFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/LivingEntityRenderer;isShaking(Lnet/minecraft/world/entity/LivingEntity;)Z"))
+	public boolean isShakingMixin(LivingEntityRenderer<T, M> renderer, T entity, T secondentity, PoseStack matrix, float o, float k, float m, float scale) {
 		if (entity instanceof Mob)
 			if (!entity.isDeadOrDying() && this.isShaking(entity))
 				return true;

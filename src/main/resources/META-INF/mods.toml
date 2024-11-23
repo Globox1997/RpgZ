@@ -35,8 +35,8 @@ Rpg Style Looting
     ordering="NONE"
     side="BOTH"
 [[dependencies.rpgz]]
-    modId="cloth_config"
+    modId="unionlib"
     mandatory=true
-    versionRange="[${clothConfigVersion},)"
+    versionRange="[${unionlibVersion},)"
     ordering="NONE"
     side="BOTH"

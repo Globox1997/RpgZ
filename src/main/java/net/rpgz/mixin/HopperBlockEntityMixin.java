@@ -2,7 +2,6 @@ package net.rpgz.mixin;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.IntStream;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -26,7 +25,7 @@ import net.rpgz.init.ConfigInit;
 public abstract class HopperBlockEntityMixin {
     private static int ticking = 0;
 
-    @Inject(method = "Lnet/minecraft/world/level/block/entity/HopperBlockEntity;suckInItems(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/level/block/entity/Hopper;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/entity/HopperBlockEntity;getItemsAtAndAbove(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/level/block/entity/Hopper;)Ljava/util/List;"), cancellable = true)
+    @Inject(method = "suckInItems(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/level/block/entity/Hopper;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/entity/HopperBlockEntity;getItemsAtAndAbove(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/level/block/entity/Hopper;)Ljava/util/List;"), cancellable = true)
     private static void extractMixin(Level level, Hopper hopper, CallbackInfoReturnable<Boolean> info) {
         if (ConfigInit.CONFIG.hopper_extracting) {
             ticking++;
@@ -42,14 +41,13 @@ public abstract class HopperBlockEntityMixin {
                         if (livingEntity.isDeadOrDying()) {
                             if (((IInventoryAccess) livingEntity).getDropsInventory() != null) {
                                 Direction direction = Direction.DOWN;
-                                info.setReturnValue(
-                                        isEmptyContainer(((IInventoryAccess) livingEntity).getDropsInventory(), direction) ? false
-                                                : getSlots(((IInventoryAccess) livingEntity).getDropsInventory(),
-                                                        direction).anyMatch((i) -> {
-                                                            return tryTakeInItemFromSlot(hopper,
-                                                                    ((IInventoryAccess) livingEntity).getDropsInventory(), i,
-                                                                    direction);
-                                                        }));
+
+                                for (int i : getSlots(((IInventoryAccess) livingEntity).getDropsInventory(), direction)) {
+                                    if (!tryTakeInItemFromSlot(hopper, ((IInventoryAccess) livingEntity).getDropsInventory(), i, direction)) {
+                                        continue;
+                                    }
+                                    info.setReturnValue(true);
+                                }
                             }
                         }
                     }
@@ -65,12 +63,7 @@ public abstract class HopperBlockEntityMixin {
     }
 
     @Shadow
-    private static boolean isEmptyContainer(Container inv, Direction facing) {
-        return false;
-    }
-
-    @Shadow
-    private static IntStream getSlots(Container inventory, Direction side) {
+    private static int[] getSlots(Container inventory, Direction side) {
         return null;
     }
 }

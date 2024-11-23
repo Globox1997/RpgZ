@@ -17,16 +17,18 @@ archivesBaseName = project.modFilename
 version = project.mod_version
 group = project.maven_group
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
 println('Mod Name: ' + modFilename + ', Mod Version: ' + mod_version + ', Minecraft Version: ' + modMinecraftVersion + ', Forge Version: ' + modForgeVersion)
 minecraft {
     mappings channel: mappingsChannel, version: mappingsVersion
     accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+    reobf = false
+    copyIdeResources = true
     runs {
         client {
-            workingDirectory project.file('run/client')
+            workingDirectory project.file('run/Forge-client')
             property 'forge.logging.markers', 'REGISTRIES'
 			property 'mixin.env.remapRefMap', 'true'
 			property 'mixin.env.refMapRemappingFile', "${buildDir}/createSrgToMcp/output.srg"
@@ -42,7 +44,7 @@ minecraft {
         }
 
         server {
-            workingDirectory project.file('run/server')
+            workingDirectory project.file('run/Forge-server')
             property 'forge.logging.markers', 'REGISTRIES'
 			property 'mixin.env.remapRefMap', 'true'
 			property 'mixin.env.refMapRemappingFile', "${buildDir}/createSrgToMcp/output.srg"
@@ -60,20 +62,32 @@ minecraft {
     }
 }
 
-sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+eclipse {
+    synchronizationTasks 'genEclipseRuns'
+}
+
+sourceSets.each {
+    def dir = layout.buildDirectory.dir("sourcesSets/$it.name")
+    it.output.resourcesDir = dir
+    it.java.destinationDirectory = dir
+}
 
 repositories {
 	maven {  url = "https://repo.spongepowered.org/maven" } // mixin
 	maven {url "https://www.cursemaven.com"}
     maven {url "https://maven.shedaniel.me/"} // cloth config
+    maven {url "https://modmaven.dev/" } //UnionLib
 }
 
 dependencies {
 	minecraft 'net.minecraftforge:forge:' + modMinecraftVersion + '-' + modForgeVersion
+	implementation('net.sf.jopt-simple:jopt-simple:5.0.4') { version { strictly '5.0.4' } }
 	annotationProcessor "org.spongepowered:mixin:"+modMixinVersion+":processor"
 	implementation "org.spongepowered:mixin:"+modMixinVersion+""
 	implementation fileTree(include: ['*.jar'], dir: 'libs')
-	implementation fg.deobf("me.shedaniel.cloth:cloth-config-forge:"+clothConfigVersion)
+	//implementation fg.deobf("me.shedaniel.cloth:cloth-config-forge:"+clothConfigVersion)
+	implementation ("com.stereowalker.unionlib:UnionLib:"+modMinecraftVersion+"-"+unionlibVersion+"-"+"Forge"+"")
 
 }
 
@@ -117,7 +131,7 @@ tasks.named('processResources', ProcessResources).configure {
     var replaceProperties = [
             minecraft_version: project.modMinecraftVersion,
             modForgeVersion: project.modForgeVersion, mod_version: project.mod_version,
-            clothConfigVersion: project.clothConfigVersion,
+            unionlibVersion: project.unionlibVersion,
     ]
     inputs.properties replaceProperties
 

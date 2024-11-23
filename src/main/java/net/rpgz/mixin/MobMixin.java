@@ -164,8 +164,8 @@ public abstract class MobMixin extends LivingEntity implements IInventoryAccess 
 			// Has to get set on server and client
 			AABB newBoundingBox = new AABB(this.getX() - (this.getBbWidth() / 3.0F), this.getY() - (this.getBbWidth() / 3.0F), this.getZ() - (this.getBbWidth() / 3.0F),
 					this.getX() + (this.getBbWidth() / 1.5F), this.getY() + (this.getBbWidth() / 1.5F), this.getZ() + (this.getBbWidth() / 1.5F));
-			if ((this.getDimensions(Pose.STANDING).height < 1.0F && this.getDimensions(Pose.STANDING).width < 1.0F)
-					|| (this.getDimensions(Pose.STANDING).width / this.getDimensions(Pose.STANDING).height) > 1.395F) {
+			if ((this.getDimensions(Pose.STANDING).height() < 1.0F && this.getDimensions(Pose.STANDING).width() < 1.0F)
+					|| (this.getDimensions(Pose.STANDING).width() / this.getDimensions(Pose.STANDING).height()) > 1.395F) {
 				this.setBoundingBox(newBoundingBox);
 			} else {
 				this.setBoundingBox(newBoundingBox.move(this.calculateViewVector(0F, this.yBodyRot).yRot(-30.0F)));
