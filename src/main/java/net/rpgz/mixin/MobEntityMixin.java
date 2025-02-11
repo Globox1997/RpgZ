@@ -64,9 +64,9 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
                 if ((Object) this instanceof FlyingEntity) {
                     this.setPos(this.getX(), this.getY() - 0.25D, this.getZ());
                 } else if (this.getVelocity().y > 0) {
-                    this.setPos(this.getX(), this.getY() - (this.getVelocity().y > 0.8D ? 0.8D : this.getVelocity().y), this.getZ());
+                    this.setPos(this.getX(), this.getY() - (Math.min(this.getVelocity().y, 0.8D)), this.getZ());
                 } else if (this.getVelocity().y < 0) {
-                    this.setPos(this.getX(), this.getY() + (this.getVelocity().y < -0.8D ? -0.8D : this.getVelocity().y) + (this.getVelocity().y > -0.2D ? -0.4D : 0.0D), this.getZ());
+                    this.setPos(this.getX(), this.getY() + (Math.max(this.getVelocity().y, -0.8D)) + (this.getVelocity().y > -0.2D ? -0.4D : 0.0D), this.getZ());
                 } else {
                     this.setPos(this.getX(), this.getY() - 0.1D, this.getZ());
                 }
