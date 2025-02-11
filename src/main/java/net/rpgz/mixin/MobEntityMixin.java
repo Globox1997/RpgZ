@@ -147,7 +147,6 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
                             || !StreamSupport.stream(this.getWorld().getBlockCollisions(this, checkBoxThree).spliterator(), false).allMatch(VoxelShape::isEmpty)))
                             || this.isBaby() || (ConfigInit.CONFIG.drop_unlooted && this.deathTime > ConfigInit.CONFIG.drop_after_ticks))
                             || this.getType().isIn(TagInit.EXCLUDED_ENTITIES) || ConfigInit.CONFIG.excluded_entities.contains(this.getType().toString().replace("entity.", "").replace(".", ":"))) {
-
                         this.getDeadMobInventory().clearToList().forEach(this::dropStack);
                     }
                 }
@@ -185,7 +184,10 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
 
     @Override
     public ItemEntity dropStack(ItemStack stack) {
-        if (this.isDead()) {
+        if (this.isBaby() || (ConfigInit.CONFIG.drop_unlooted && this.deathTime > ConfigInit.CONFIG.drop_after_ticks)
+                || this.getType().isIn(TagInit.EXCLUDED_ENTITIES) || ConfigInit.CONFIG.excluded_entities.contains(this.getType().toString().replace("entity.", "").replace(".", ":"))) {
+            return super.dropStack(stack);
+        } else if (this.isDead()) {
             this.getDeadMobInventory().addStack(stack);
             return null;
         } else {
@@ -193,6 +195,7 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
         }
     }
 
+    @Unique
     private void despawnParticlesServer() {
         for (int i = 0; i < 20; ++i) {
             double d = this.random.nextGaussian() * 0.025D;
@@ -253,8 +256,6 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
                     }
                     return ActionResult.SUCCESS;
                 }
-            } else if ((Object) this instanceof PlayerEntity) {
-                return super.interactAt(player, hitPos, hand);
             }
             return ActionResult.SUCCESS;
         }

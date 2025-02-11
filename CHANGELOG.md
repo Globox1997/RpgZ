@@ -1,6 +1,6 @@
 ### Added:
 - 
 ### Fixed:
-- Fixed inventory owner bug
+- Fixed excluded entities
 ### Changed:
 - 
