@@ -118,65 +118,57 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
                 BlockPos blockPos = BlockPos.ofFloored(box.minX + 0.001D, box.minY + 0.001D, box.minZ + 0.001D).up();
                 BlockPos blockPos2 = BlockPos.ofFloored(box.maxX - 0.001D, box.maxY - 0.001D, box.maxZ - 0.001D);
 
-                // Older method, might be better?
-                // if (this.getWorld().isRegionLoaded(blockPos, blockPos2)) {
-                // if (!world.isClient && !this.inventory.isEmpty()
-                // && (world.getBlockState(blockPos).isFullCube(world, blockPos)
-                // || world.getBlockState(blockPos2).isFullCube(world, blockPos2) ||
-                // this.isBaby()
-                // || (Config.CONFIG.drop_unlooted && this.deathTime >
-                // Config.CONFIG.drop_after_ticks))
-                // || this.getType().isIn(Tags.EXCLUDED_ENTITIES)
-                // ||
-                // Config.CONFIG.excluded_entities.contains(this.getType().toString().replace("entity.",
-                // ""))) {
-                // this.inventory.clearToList().forEach(this::dropStack);
-                // }
-                // }
-
-                // New method to check if inside block
-                Box checkBox = new Box(box.maxX, box.maxY, box.maxZ, box.maxX + 0.001D, box.maxY + 0.001D, box.maxZ + 0.001D);
-                Box checkBoxTwo = new Box(box.minX, box.maxY, box.minZ, box.minX + 0.001D, box.maxY + 0.001D, box.minZ + 0.001D);
-                Box checkBoxThree = new Box(box.maxX - (box.getLengthX() / 3D), box.maxY, box.maxZ - (box.getLengthZ() / 3D), box.maxX + 0.001D - (box.getLengthX() / 3D), box.maxY + 0.001D,
-                        box.maxZ + 0.001D - (box.getLengthZ() / 3D));
-                if (this.getWorld().isRegionLoaded(blockPos, blockPos2)) {
-                    if (!this.getDeadMobInventory().isEmpty()
-                            && (((!StreamSupport.stream(this.getWorld().getBlockCollisions(this, checkBox).spliterator(), false).allMatch(VoxelShape::isEmpty)
-                            || !StreamSupport.stream(this.getWorld().getBlockCollisions(this, checkBoxThree).spliterator(), false).allMatch(VoxelShape::isEmpty))
-                            && (!StreamSupport.stream(this.getWorld().getBlockCollisions(this, checkBoxTwo).spliterator(), false).allMatch(VoxelShape::isEmpty)
-                            || !StreamSupport.stream(this.getWorld().getBlockCollisions(this, checkBoxThree).spliterator(), false).allMatch(VoxelShape::isEmpty)))
-                            || this.isBaby() || (ConfigInit.CONFIG.drop_unlooted && this.deathTime > ConfigInit.CONFIG.drop_after_ticks))
-                            || this.getType().isIn(TagInit.EXCLUDED_ENTITIES) || ConfigInit.CONFIG.excluded_entities.contains(this.getType().toString().replace("entity.", "").replace(".", ":"))) {
-                        this.getDeadMobInventory().clearToList().forEach(this::dropStack);
+                if (this.getWorld().isRegionLoaded(blockPos, blockPos2) && !this.getDeadMobInventory().isEmpty() && (this.shouldDropLootDirectly() || this.isCorpseInsideBlock(box))) {
+                    // Has to bypass dropStack, otherwise the items get put back into the dead mob inventory
+                    for (ItemStack stack : this.getDeadMobInventory().clearToList()) {
+                        super.dropStack(stack);
                     }
                 }
             }
-            // world.getClosestPlayer(this,// 1.0D)// !=// null// || Testing purpose
         }
 
-        if ((!this.getWorld().isClient() && this.deathTime >= 20 && (this.getDeadMobInventory() == null || this.getDeadMobInventory().isEmpty()) && ConfigInit.CONFIG.despawn_immediately_when_empty)
-                || (this.deathTime >= ConfigInit.CONFIG.despawn_corps_after_ticks)) {
-            if (!this.getWorld().isClient()) { // Make sure only on server particle
-                this.despawnParticlesServer();
-            }
-
+        // Only the server despawns the corpse, the removal gets synced to the clients
+        if (!this.getWorld().isClient() && this.deathTime >= 20
+                && ((this.getDeadMobInventory().isEmpty() && ConfigInit.CONFIG.despawn_immediately_when_empty) || this.deathTime >= ConfigInit.CONFIG.despawn_corps_after_ticks)) {
+            this.despawnParticlesServer();
             this.remove(RemovalReason.KILLED);
         }
+    }
+
+    @Unique
+    private boolean isCorpseInsideBlock(Box box) {
+        Box checkBox = new Box(box.maxX, box.maxY, box.maxZ, box.maxX + 0.001D, box.maxY + 0.001D, box.maxZ + 0.001D);
+        Box checkBoxTwo = new Box(box.minX, box.maxY, box.minZ, box.minX + 0.001D, box.maxY + 0.001D, box.minZ + 0.001D);
+        Box checkBoxThree = new Box(box.maxX - (box.getLengthX() / 3D), box.maxY, box.maxZ - (box.getLengthZ() / 3D), box.maxX + 0.001D - (box.getLengthX() / 3D), box.maxY + 0.001D,
+                box.maxZ + 0.001D - (box.getLengthZ() / 3D));
+        boolean collidesThree = this.hasBlockCollision(checkBoxThree);
+        return (collidesThree || this.hasBlockCollision(checkBox)) && (collidesThree || this.hasBlockCollision(checkBoxTwo));
+    }
+
+    @Unique
+    private boolean hasBlockCollision(Box box) {
+        return !StreamSupport.stream(this.getWorld().getBlockCollisions(this, box).spliterator(), false).allMatch(VoxelShape::isEmpty);
+    }
+
+    @Unique
+    private boolean isExcludedFromLooting() {
+        return this.getType().isIn(TagInit.EXCLUDED_ENTITIES) || ConfigInit.CONFIG.excluded_entities.contains(EntityType.getId(this.getType()).toString());
+    }
+
+    @Unique
+    private boolean shouldDropLootDirectly() {
+        return this.isBaby() || (ConfigInit.CONFIG.drop_unlooted && this.deathTime > ConfigInit.CONFIG.drop_after_ticks) || this.isExcludedFromLooting();
     }
 
     @Override
     public void onDeath(DamageSource damageSource) {
         if (!this.getWorld().isClient()) {
-            if (this.hasPassengers()) {
-                for (int i = 0; i < this.getPassengerList().size(); i++) {
-                    this.getPassengerList().get(i).dismountVehicle();
-                }
-            }
+            this.removeAllPassengers();
+            // Clear the inventory, some mobs (piglin, allay) drop it again via dropStack in super.onDeath
             if (this instanceof InventoryOwner inventoryOwner && !inventoryOwner.getInventory().isEmpty()) {
-                for (ItemStack stack : inventoryOwner.getInventory().getHeldStacks()) {
-                    this.getDeadMobInventory().addStack(stack);
+                for (ItemStack stack : inventoryOwner.getInventory().clearToList()) {
+                    this.dropStack(stack);
                 }
-
             }
         }
         super.onDeath(damageSource);
@@ -184,15 +176,11 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
 
     @Override
     public ItemEntity dropStack(ItemStack stack) {
-        if (this.isBaby() || (ConfigInit.CONFIG.drop_unlooted && this.deathTime > ConfigInit.CONFIG.drop_after_ticks)
-                || this.getType().isIn(TagInit.EXCLUDED_ENTITIES) || ConfigInit.CONFIG.excluded_entities.contains(this.getType().toString().replace("entity.", "").replace(".", ":"))) {
-            return super.dropStack(stack);
-        } else if (this.isDead()) {
-            this.getDeadMobInventory().addStack(stack);
-            return null;
-        } else {
-            return super.dropStack(stack);
+        if (this.isDead() && !this.shouldDropLootDirectly()) {
+            ItemStack remainder = this.getDeadMobInventory().addStack(stack);
+            return remainder.isEmpty() ? null : super.dropStack(remainder);
         }
+        return super.dropStack(stack);
     }
 
     @Unique
@@ -252,7 +240,7 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
                         }
                         this.getDeadMobInventory().clear();
                     } else {
-                        player.openHandledScreen(new SimpleNamedScreenHandlerFactory((syncId, inv, p) -> new MobEntityScreenHandler(syncId, p.getInventory(), this.getDeadMobInventory()), this.getName()));
+                        player.openHandledScreen(new SimpleNamedScreenHandlerFactory((syncId, inv, p) -> new MobEntityScreenHandler(syncId, p.getInventory(), this.getDeadMobInventory(), (MobEntity) (Object) this), this.getName()));
                     }
                     return ActionResult.SUCCESS;
                 }
