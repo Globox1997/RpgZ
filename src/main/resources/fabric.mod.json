@@ -12,7 +12,7 @@
     "sources": "https://github.com/Globox1997/RpgZ",
     "issues": "https://github.com/Globox1997/RpgZ/issues"
   },
-  "license": "GLPv3",
+  "license": "GPLv3",
   "icon": "assets/rpgz/icon.png",
   "environment": "*",
   "entrypoints": {
