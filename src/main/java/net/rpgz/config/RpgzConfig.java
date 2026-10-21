@@ -23,4 +23,13 @@ public class RpgzConfig implements ConfigData {
     @Comment("Example: minecraft:zombie or adventurez:brown_fungus")
     public ArrayList<String> excluded_entities = new ArrayList<>(List.of("minecraft:shulker"));
 
+    @Override
+    public void validatePostLoad() {
+        this.despawn_corps_after_ticks = Math.clamp(this.despawn_corps_after_ticks, 21, Short.MAX_VALUE);
+        this.drop_after_ticks = Math.clamp(this.drop_after_ticks, 0, this.despawn_corps_after_ticks - 1);
+        if (this.excluded_entities == null) {
+            this.excluded_entities = new ArrayList<>();
+        }
+    }
+
 }
