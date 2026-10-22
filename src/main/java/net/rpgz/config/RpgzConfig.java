@@ -18,6 +18,8 @@ public class RpgzConfig implements ConfigData {
     @Comment("Default: 2400ticks = 2min")
     public int drop_after_ticks = 2400;
     public int despawn_corps_after_ticks = 4800;
+    @Comment("Spawns smoke particles on looted corpses shortly before they despawn")
+    public boolean despawn_warning = true;
     public boolean despawn_immediately_when_empty = true;
     public boolean surfacing_in_water = true;
     @Comment("Example: minecraft:zombie or adventurez:brown_fungus")
