@@ -6,6 +6,9 @@ import net.minecraft.entity.*;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.*;
 import net.rpgz.util.DeadMobInventory;
+import net.rpgz.util.MobCorpse;
+import net.rpgz.util.RpgHelper;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -13,7 +16,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.At;
 
-import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.mob.FlyingEntity;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -28,11 +30,13 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.World;
 import net.rpgz.init.ConfigInit;
-import net.rpgz.init.TagInit;
 import net.rpgz.screen.MobEntityScreenHandler;
 
 @Mixin(MobEntity.class)
-public abstract class MobEntityMixin extends LivingEntity implements DeadMobInventory {
+public abstract class MobEntityMixin extends LivingEntity implements DeadMobInventory, MobCorpse {
+
+    @Unique
+    private static final int DESPAWN_WARNING_TICKS = 200;
 
     @Unique
     private final SimpleInventory deadMobInventory = new SimpleInventory(9);
@@ -84,9 +88,22 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
         }
     }
 
+    @Override
+    public void onCorpseCreated() {
+        if (!this.getWorld().isClient()) {
+            this.removeAllPassengers();
+            // Clear the inventory, some mobs (piglin, allay) drop it again via dropStack in onDeath
+            if (this instanceof InventoryOwner inventoryOwner && !inventoryOwner.getInventory().isEmpty()) {
+                for (ItemStack stack : inventoryOwner.getInventory().clearToList()) {
+                    this.dropStack(stack);
+                }
+            }
+        }
+    }
+
     @SuppressWarnings("deprecation")
     @Override
-    protected void updatePostDeath() {
+    public void tickCorpse() {
         ++this.deathTime;
         if (this.deathTime == 1) {
             if (this.isOnFire()) {
@@ -99,30 +116,25 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
 
         if (this.deathTime >= 20) {
             // Has to get set on server and client
-            Box newBoundingBox = new Box(this.getX() - (this.getWidth() / 3.0F), this.getY() - (this.getWidth() / 3.0F), this.getZ() - (this.getWidth() / 3.0F),
-                    this.getX() + (this.getWidth() / 1.5F), this.getY() + (this.getWidth() / 1.5F), this.getZ() + (this.getWidth() / 1.5F));
-            if ((this.getDimensions(EntityPose.STANDING).height() < 1.0F && this.getDimensions(EntityPose.STANDING).width() < 1.0F)
-                    || (this.getDimensions(EntityPose.STANDING).width() / this.getDimensions(EntityPose.STANDING).height()) > 1.395F) {
-                this.setBoundingBox(newBoundingBox);
-            } else {
-                this.setBoundingBox(newBoundingBox.offset(this.getRotationVector(0F, this.bodyYaw).rotateY(-30.0F)));
-                // this.setBoundingBox(newBoundingBox.offset(this.getRotationVecClient().rotateY(-30.0F)));
-                // acceptable solution
-            }
-            // Chicken always has trouble - not fixable
-            // Shulker has trouble
-            // this.checkBlockCollision(); //Doesnt solve problem
-            // if (this.isInsideWall()) {} // Doenst work
+            this.setBoundingBox(this.calculateCorpseBoundingBox());
+
             if (!this.getWorld().isClient()) {
                 Box box = this.getBoundingBox();
                 BlockPos blockPos = BlockPos.ofFloored(box.minX + 0.001D, box.minY + 0.001D, box.minZ + 0.001D).up();
                 BlockPos blockPos2 = BlockPos.ofFloored(box.maxX - 0.001D, box.maxY - 0.001D, box.maxZ - 0.001D);
 
-                if (this.getWorld().isRegionLoaded(blockPos, blockPos2) && !this.getDeadMobInventory().isEmpty() && (this.shouldDropLootDirectly() || this.isCorpseInsideBlock(box))) {
-                    // Has to bypass dropStack, otherwise the items get put back into the dead mob inventory
+                if (this.getWorld().isRegionLoaded(blockPos, blockPos2) && !this.getDeadMobInventory().isEmpty()
+                        && (RpgHelper.shouldDropLootDirectly((MobEntity) (Object) this) || this.isCorpseInsideBlock(box))) {
+                    // The float overload skips the dropStack injection, otherwise the items get put back into the dead mob inventory
                     for (ItemStack stack : this.getDeadMobInventory().clearToList()) {
-                        super.dropStack(stack);
+                        this.dropStack(stack, 0.0F);
                     }
+                }
+
+                int ticksUntilDespawn = ConfigInit.CONFIG.despawn_corps_after_ticks - this.deathTime;
+                if (ConfigInit.CONFIG.despawn_warning && ticksUntilDespawn > 0 && ticksUntilDespawn <= DESPAWN_WARNING_TICKS && ticksUntilDespawn % 10 == 0
+                        && !this.getDeadMobInventory().isEmpty()) {
+                    this.despawnWarningParticlesServer();
                 }
             }
         }
@@ -133,6 +145,33 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
             this.despawnParticlesServer();
             this.remove(RemovalReason.KILLED);
         }
+    }
+
+    // Matches the lying model from LivingEntityRenderer.setupTransforms
+    @Unique
+    private Box calculateCorpseBoundingBox() {
+        EntityDimensions dimensions = this.getDimensions(EntityPose.STANDING);
+        double width = dimensions.width();
+        double height = dimensions.height();
+        double x = this.getX();
+        double y = this.getY();
+        double z = this.getZ();
+
+        // Flat mobs like spiders get flipped onto their back and keep their footprint
+        if (width / height > 1.395D) {
+            return new Box(x - width / 2.0D, y, z - width / 2.0D, x + width / 2.0D, y + height, z + width / 2.0D);
+        }
+        // Other mobs fall onto their side, so the body lies from the feet sideways to the body yaw.
+        // The model is lifted by a quarter of the width (MobEntityRenderer), so the body spans from -width/4 to width*3/4.
+        float yaw = this.bodyYaw * MathHelper.RADIANS_PER_DEGREE;
+        double directionX = MathHelper.cos(yaw);
+        double directionZ = MathHelper.sin(yaw);
+        double headX = x + directionX * height;
+        double headZ = z + directionZ * height;
+        double halfThicknessX = Math.abs(directionZ) * width / 2.0D;
+        double halfThicknessZ = Math.abs(directionX) * width / 2.0D;
+        return new Box(Math.min(x, headX) - halfThicknessX, y - width / 4.0D, Math.min(z, headZ) - halfThicknessZ, Math.max(x, headX) + halfThicknessX, y + width * 0.75D,
+                Math.max(z, headZ) + halfThicknessZ);
     }
 
     @Unique
@@ -151,39 +190,6 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
     }
 
     @Unique
-    private boolean isExcludedFromLooting() {
-        return this.getType().isIn(TagInit.EXCLUDED_ENTITIES) || ConfigInit.CONFIG.excluded_entities.contains(EntityType.getId(this.getType()).toString());
-    }
-
-    @Unique
-    private boolean shouldDropLootDirectly() {
-        return this.isBaby() || (ConfigInit.CONFIG.drop_unlooted && this.deathTime > ConfigInit.CONFIG.drop_after_ticks) || this.isExcludedFromLooting();
-    }
-
-    @Override
-    public void onDeath(DamageSource damageSource) {
-        if (!this.getWorld().isClient()) {
-            this.removeAllPassengers();
-            // Clear the inventory, some mobs (piglin, allay) drop it again via dropStack in super.onDeath
-            if (this instanceof InventoryOwner inventoryOwner && !inventoryOwner.getInventory().isEmpty()) {
-                for (ItemStack stack : inventoryOwner.getInventory().clearToList()) {
-                    this.dropStack(stack);
-                }
-            }
-        }
-        super.onDeath(damageSource);
-    }
-
-    @Override
-    public ItemEntity dropStack(ItemStack stack) {
-        if (this.isDead() && !this.shouldDropLootDirectly()) {
-            ItemStack remainder = this.getDeadMobInventory().addStack(stack);
-            return remainder.isEmpty() ? null : super.dropStack(remainder);
-        }
-        return super.dropStack(stack);
-    }
-
-    @Unique
     private void despawnParticlesServer() {
         for (int i = 0; i < 20; ++i) {
             double d = this.random.nextGaussian() * 0.025D;
@@ -194,6 +200,13 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
             double z = MathHelper.nextDouble(random, this.getBoundingBox().minZ - 0.5D, this.getBoundingBox().maxZ) + 0.5D;
             ((ServerWorld) this.getWorld()).spawnParticles(ParticleTypes.POOF, x, y, z, 0, d, e, f, 0.01D);
         }
+    }
+
+    @Unique
+    private void despawnWarningParticlesServer() {
+        Box box = this.getBoundingBox();
+        Vec3d center = box.getCenter();
+        ((ServerWorld) this.getWorld()).spawnParticles(ParticleTypes.SMOKE, center.getX(), box.maxY, center.getZ(), 3, box.getLengthX() / 4.0D, 0.05D, box.getLengthZ() / 4.0D, 0.01D);
     }
 
     // Stop turning after death
@@ -217,37 +230,38 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
     }
 
     @Override
-    public ActionResult interactAt(PlayerEntity player, Vec3d hitPos, Hand hand) {
-        if (this.deathTime > 20) {
-            if (!this.getWorld().isClient()) {
-                if (player.getStackInHand(hand).getItem() instanceof ShovelItem) {
-                    if (!this.getDeadMobInventory().isEmpty()) {
-                        for (int i = 0; i < this.getDeadMobInventory().size(); i++) {
-                            player.getInventory().offerOrDrop(this.getDeadMobInventory().getStack(i));
-                        }
-                        this.getDeadMobInventory().clear();
-                    }
-                    if (!ConfigInit.CONFIG.despawn_immediately_when_empty) {
-                        this.despawnParticlesServer();
-                        this.remove(RemovalReason.KILLED);
-                    }
-                    return ActionResult.SUCCESS;
-                }
-                if (!this.getDeadMobInventory().isEmpty()) {
-                    if (player.isSneaking()) {
-                        for (int i = 0; i < this.getDeadMobInventory().size(); i++) {
-                            player.getInventory().offerOrDrop(this.getDeadMobInventory().getStack(i));
-                        }
-                        this.getDeadMobInventory().clear();
-                    } else {
-                        player.openHandledScreen(new SimpleNamedScreenHandlerFactory((syncId, inv, p) -> new MobEntityScreenHandler(syncId, p.getInventory(), this.getDeadMobInventory(), (MobEntity) (Object) this), this.getName()));
-                    }
-                    return ActionResult.SUCCESS;
-                }
-            }
-            return ActionResult.SUCCESS;
+    @Nullable
+    public ActionResult interactWithCorpse(PlayerEntity player, Hand hand) {
+        if (this.deathTime <= 20) {
+            return null;
         }
-        return super.interactAt(player, hitPos, hand);
+        if (!this.getWorld().isClient()) {
+            if (player.getStackInHand(hand).getItem() instanceof ShovelItem) {
+                if (!this.getDeadMobInventory().isEmpty()) {
+                    for (int i = 0; i < this.getDeadMobInventory().size(); i++) {
+                        player.getInventory().offerOrDrop(this.getDeadMobInventory().getStack(i));
+                    }
+                    this.getDeadMobInventory().clear();
+                }
+                if (!ConfigInit.CONFIG.despawn_immediately_when_empty) {
+                    this.despawnParticlesServer();
+                    this.remove(RemovalReason.KILLED);
+                }
+                return ActionResult.SUCCESS;
+            }
+            if (!this.getDeadMobInventory().isEmpty()) {
+                if (player.isSneaking()) {
+                    for (int i = 0; i < this.getDeadMobInventory().size(); i++) {
+                        player.getInventory().offerOrDrop(this.getDeadMobInventory().getStack(i));
+                    }
+                    this.getDeadMobInventory().clear();
+                } else {
+                    player.openHandledScreen(new SimpleNamedScreenHandlerFactory((syncId, inv, p) -> new MobEntityScreenHandler(syncId, p.getInventory(), this.getDeadMobInventory(), (MobEntity) (Object) this), this.getName()));
+                }
+                return ActionResult.SUCCESS;
+            }
+        }
+        return ActionResult.SUCCESS;
     }
 
 }

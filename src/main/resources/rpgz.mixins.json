@@ -4,6 +4,8 @@
   "package": "net.rpgz.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "EntityMixin",
+    "LivingEntityMixin",
     "MobEntityMixin",
     "HopperBlockEntityMixin",
     "ServerPlayerEntityMixin",
@@ -18,8 +20,7 @@
     "client.ClientWorldMixin",
     "client.GameRendererMixin",
     "client.EntityRendererMixin",
-    "client.MobEntityRendererMixin",
-    "misc.SquidEntityModelMixin"
+    "client.MobEntityRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1
