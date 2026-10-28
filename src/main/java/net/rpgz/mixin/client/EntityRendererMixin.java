@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 
 import net.fabricmc.api.Environment;
-import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
@@ -25,7 +25,7 @@ public abstract class EntityRendererMixin<T extends Entity> {
         if (entity instanceof Mob mobEntity && mobEntity.isDeadOrDying()) {
             AABB box = entity.getBoundingBox();
             BlockPos blockPos = new BlockPos(Mth.floor(box.getCenter().x()), Mth.floor(box.maxY), Mth.floor(box.getCenter().z()));
-            info.setReturnValue(LightTexture.pack(this.getBlockLightLevel(entity, blockPos), this.getSkyLightLevel(entity, blockPos)));
+            info.setReturnValue(LightCoordsUtil.pack(this.getBlockLightLevel(entity, blockPos), this.getSkyLightLevel(entity, blockPos)));
         }
     }
 

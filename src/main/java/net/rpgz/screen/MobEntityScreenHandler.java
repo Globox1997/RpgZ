@@ -48,7 +48,7 @@ public class MobEntityScreenHandler extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return this.mobEntity == null || player.canInteractWithEntity(this.mobEntity, 4.0D);
+        return this.mobEntity == null || player.isWithinEntityInteractionRange(this.mobEntity, 4.0D);
     }
 
     @Override

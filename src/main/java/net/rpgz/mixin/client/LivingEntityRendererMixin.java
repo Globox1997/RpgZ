@@ -10,54 +10,51 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
-import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.entity.MobRenderer;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 
 @Environment(EnvType.CLIENT)
 @Mixin(LivingEntityRenderer.class)
-public abstract class LivingEntityRendererMixin<T extends LivingEntity> {
+public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extends LivingEntityRenderState> {
 
-    @Inject(method = "getOverlayCoords", at = @At("HEAD"), cancellable = true)
-    private static void getOverlayMixin(LivingEntity entity, float whiteOverlayProgress, CallbackInfoReturnable<Integer> info) {
+    @Inject(method = "extractRenderState(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;F)V", at = @At("TAIL"))
+    private void extractRenderStateMixin(T entity, S state, float partialTicks, CallbackInfo info) {
         if (entity instanceof Mob) {
-            info.setReturnValue(OverlayTexture.pack(OverlayTexture.u(whiteOverlayProgress), OverlayTexture.v(entity.hurtTime > 0)));
+            state.hasRedOverlay = entity.hurtTime > 0;
+            if (entity.isDeadOrDying()) {
+                state.ageInTicks = 0.0F;
+            }
         }
     }
 
     @Inject(method = "isShaking", at = @At("HEAD"), cancellable = true)
-    private void isShakingMixin(T entity, CallbackInfoReturnable<Boolean> info) {
-        if (entity instanceof Mob && entity.isDeadOrDying()) {
+    private void isShakingMixin(S state, CallbackInfoReturnable<Boolean> info) {
+        if ((Object) this instanceof MobRenderer && state.deathTime > 0.0F) {
             info.setReturnValue(false);
         }
     }
 
     @Inject(method = "setupRotations", at = @At("HEAD"))
-    private void setupTransformsMixin(T entity, PoseStack matrices, float animationProgress, float bodyYaw, float tickDelta, float scale, CallbackInfo info) {
-        if (entity instanceof Mob && entity.deathTime > 0) {
-            float f = ((float) entity.deathTime + tickDelta - 1.0F) / 20.0F * 1.6F;
+    private void setupTransformsMixin(S state, PoseStack matrices, float bodyRot, float entityScale, CallbackInfo info) {
+        if ((Object) this instanceof MobRenderer && state.deathTime > 0.0F) {
+            float f = (state.deathTime - 1.0F) / 20.0F * 1.6F;
             if (f > 1.0F) {
                 f = 1.0F;
             }
             float lyinganglebonus = 1F;
-            if (this.getFlipDegrees(entity) > 90F) {
+            if (this.getFlipDegrees() > 90F) {
                 lyinganglebonus = 2.5F;
             }
-            matrices.translate(0.0D, (double) ((entity.getBbWidth() / 4.0D) * f) * lyinganglebonus, 0.0D);
-            if (entity.isBaby()) {
-                matrices.translate(-(double) ((entity.getBbHeight() / 2) * f), 0.0D, 0.0D);
+            matrices.translate(0.0D, (double) ((state.boundingBoxWidth / 4.0D) * f) * lyinganglebonus, 0.0D);
+            if (state.isBaby) {
+                matrices.translate(-(double) ((state.boundingBoxHeight / 2) * f), 0.0D, 0.0D);
             }
-        }
-    }
-
-    @Inject(method = "getBob", at = @At("HEAD"), cancellable = true)
-    private void getAnimationProgressMixin(T entity, float tickDelta, CallbackInfoReturnable<Float> info) {
-        if (entity instanceof Mob && entity.isDeadOrDying()) {
-            info.setReturnValue(0.0F);
         }
     }
 
     @Shadow
-    protected abstract float getFlipDegrees(T entity);
+    protected abstract float getFlipDegrees();
 
 }

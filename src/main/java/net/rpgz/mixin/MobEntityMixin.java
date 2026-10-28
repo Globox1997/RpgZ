@@ -3,22 +3,25 @@ package net.rpgz.mixin;
 import java.util.stream.StreamSupport;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.FlyingMob;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.monster.Ghast;
+import net.minecraft.world.entity.monster.Phantom;
 import net.minecraft.world.entity.npc.InventoryCarrier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ShovelItem;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -50,16 +53,16 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
     }
 
     @Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
-    private void writeCustomDataToNbtMixin(CompoundTag nbt, CallbackInfo info) {
+    private void writeCustomDataToNbtMixin(ValueOutput output, CallbackInfo info) {
         if (this.isDeadOrDying()) {
-            this.writeDeadMobInventory(nbt, this.registryAccess());
+            this.writeDeadMobInventory(output);
         }
     }
 
     @Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
-    private void readCustomDataFromNbtMixin(CompoundTag nbt, CallbackInfo info) {
+    private void readCustomDataFromNbtMixin(ValueInput input, CallbackInfo info) {
         if (this.isDeadOrDying()) {
-            this.readDeadMobInventory(nbt, this.registryAccess());
+            this.readDeadMobInventory(input);
         }
     }
 
@@ -69,7 +72,7 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
             AABB box = this.getBoundingBox();
             BlockPos blockPos = BlockPos.containing(box.getCenter().x(), box.minY, box.getCenter().z());
             if (this.level().getBlockState(blockPos).isAir()) {
-                if ((Object) this instanceof FlyingMob) {
+                if ((Object) this instanceof Ghast || (Object) this instanceof Phantom) {
                     this.setPosRaw(this.getX(), this.getY() - 0.25D, this.getZ());
                 } else if (this.getDeltaMovement().y > 0) {
                     this.setPosRaw(this.getX(), this.getY() - (Math.min(this.getDeltaMovement().y, 0.8D)), this.getZ());
@@ -94,12 +97,12 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
 
     @Override
     public void onCorpseCreated() {
-        if (!this.level().isClientSide()) {
+        if (this.level() instanceof ServerLevel serverLevel) {
             this.ejectPassengers();
             // Clear the inventory, some mobs (piglin, allay) drop it again via dropStack in onDeath
             if (this instanceof InventoryCarrier inventoryOwner && !inventoryOwner.getInventory().isEmpty()) {
                 for (ItemStack stack : inventoryOwner.getInventory().removeAllItems()) {
-                    this.spawnAtLocation(stack);
+                    this.spawnAtLocation(serverLevel, stack);
                 }
             }
         }
@@ -121,7 +124,7 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
         if (this.deathTime >= 20) {
             this.setBoundingBox(CorpseBox.getBoundingBox((Mob) (Object) this));
 
-            if (!this.level().isClientSide()) {
+            if (this.level() instanceof ServerLevel serverLevel) {
                 AABB box = this.getBoundingBox();
                 BlockPos blockPos = BlockPos.containing(box.minX + 0.001D, box.minY + 0.001D, box.minZ + 0.001D).above();
                 BlockPos blockPos2 = BlockPos.containing(box.maxX - 0.001D, box.maxY - 0.001D, box.maxZ - 0.001D);
@@ -129,7 +132,7 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
                 if (this.level().hasChunksAt(blockPos, blockPos2) && !this.getDeadMobInventory().isEmpty()
                         && (RpgHelper.shouldDropLootDirectly((Mob) (Object) this) || this.isCorpseInsideBlock(box))) {
                     for (ItemStack stack : this.getDeadMobInventory().removeAllItems()) {
-                        this.spawnAtLocation(stack, 0.0F);
+                        this.spawnAtLocation(serverLevel, stack, 0.0F);
                     }
                 }
 
@@ -185,9 +188,9 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
 
     // Stop turning after death
     @Inject(method = "tickHeadTurn", at = @At("HEAD"), cancellable = true)
-    public void turnHead(float bodyRotation, float headRotation, CallbackInfoReturnable<Float> info) {
+    public void turnHead(float yBodyRotT, CallbackInfo info) {
         if (this.deathTime > 0) {
-            info.setReturnValue(0.0F);
+            info.cancel();
         }
     }
 
@@ -203,6 +206,14 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
         return this.deadMobInventory;
     }
 
+    @Inject(method = "interact", at = @At("HEAD"), cancellable = true)
+    private void interactMixin(Player player, InteractionHand hand, Vec3 location, CallbackInfoReturnable<InteractionResult> info) {
+        InteractionResult result = this.interactWithCorpse(player, hand);
+        if (result != null) {
+            info.setReturnValue(result);
+        }
+    }
+
     @Override
     @Nullable
     public InteractionResult interactWithCorpse(Player player, InteractionHand hand) {
@@ -210,10 +221,10 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
             return null;
         }
         if (!this.level().isClientSide()) {
-            if (player.getItemInHand(hand).getItem() instanceof ShovelItem) {
+            if (player.getItemInHand(hand).is(ItemTags.SHOVELS)) {
                 if (!this.getDeadMobInventory().isEmpty()) {
                     for (int i = 0; i < this.getDeadMobInventory().getContainerSize(); i++) {
-                        player.getInventory().placeItemBackInInventory(this.getDeadMobInventory().getItem(i));
+                        player.getInventory().placeItemBackInInventory(this.getDeadMobInventory().getItem(i), Prediction.SERVER_ONLY);
                     }
                     this.getDeadMobInventory().clearContent();
                 }
@@ -226,7 +237,7 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
             if (!this.getDeadMobInventory().isEmpty()) {
                 if (player.isShiftKeyDown()) {
                     for (int i = 0; i < this.getDeadMobInventory().getContainerSize(); i++) {
-                        player.getInventory().placeItemBackInInventory(this.getDeadMobInventory().getItem(i));
+                        player.getInventory().placeItemBackInInventory(this.getDeadMobInventory().getItem(i), Prediction.SERVER_ONLY);
                     }
                     this.getDeadMobInventory().clearContent();
                 } else {

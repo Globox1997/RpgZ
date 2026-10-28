@@ -6,14 +6,14 @@ import java.util.Set;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigHolder;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionResult;
 import net.rpgz.config.RpgzConfig;
 
 public class ConfigInit {
 
     public static RpgzConfig CONFIG = new RpgzConfig();
-    public static Set<ResourceLocation> EXCLUDED_ENTITIES = Set.of();
+    public static Set<Identifier> EXCLUDED_ENTITIES = Set.of();
 
     public static void init() {
         ConfigHolder<RpgzConfig> holder = AutoConfig.register(RpgzConfig.class, GsonConfigSerializer::new);
@@ -32,12 +32,12 @@ public class ConfigInit {
     }
 
     private static void updateExcludedEntities(RpgzConfig config) {
-        Set<ResourceLocation> excludedEntities = new HashSet<>();
+        Set<Identifier> excludedEntities = new HashSet<>();
         if (config.excluded_entities == null) {
             config.validatePostLoad();
         }
         for (String id : config.excluded_entities) {
-            ResourceLocation identifier = ResourceLocation.tryParse(id.trim());
+            Identifier identifier = Identifier.tryParse(id.trim());
             if (identifier != null) {
                 excludedEntities.add(identifier);
             }

@@ -3,9 +3,10 @@ package net.rpgz;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.phys.EntityHitResult;
@@ -15,11 +16,11 @@ import net.rpgz.network.RpgClientPacket;
 @Environment(EnvType.CLIENT)
 public class RpgzClient implements ClientModInitializer {
 
-    private static final ResourceLocation LOOT_BAG_TEXTURE = ResourceLocation.fromNamespaceAndPath("rpgz", "textures/sprite/loot_bag.png");
+    private static final Identifier LOOT_BAG_TEXTURE = Identifier.fromNamespaceAndPath("rpgz", "textures/sprite/loot_bag.png");
 
     @Override
     public void onInitializeClient() {
-        HudRenderCallback.EVENT.register((drawContext, tickCounter) -> {
+        HudElementRegistry.addLast(Identifier.fromNamespaceAndPath("rpgz", "loot_bag"), (drawContext, tickCounter) -> {
             Minecraft client = Minecraft.getInstance();
             if (client.hitResult != null && client.hitResult.getType() == HitResult.Type.ENTITY) {
                 Entity entity = ((EntityHitResult) client.hitResult).getEntity();
@@ -28,7 +29,7 @@ public class RpgzClient implements ClientModInitializer {
                     if (deadBody != null && deadBody.deathTime > 20) {
                         int scaledWidth = client.getWindow().getGuiScaledWidth();
                         int scaledHeight = client.getWindow().getGuiScaledHeight();
-                        drawContext.blit(LOOT_BAG_TEXTURE, (scaledWidth / 2), (scaledHeight / 2) - 16, 0.0F, 0.0F, 16, 16, 16, 16);
+                        drawContext.blit(RenderPipelines.GUI_TEXTURED, LOOT_BAG_TEXTURE, (scaledWidth / 2), (scaledHeight / 2) - 16, 0.0F, 0.0F, 16, 16, 16, 16);
                     }
                 }
             }

@@ -1,21 +1,19 @@
 package net.rpgz.util;
 
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 public interface DeadMobInventory {
 
     public SimpleContainer getDeadMobInventory();
 
-    default public void readDeadMobInventory(CompoundTag nbt, HolderLookup.Provider wrapperLookup) {
-        if (nbt.contains("DeadMobInventory", Tag.TAG_LIST)) {
-            this.getDeadMobInventory().fromTag(nbt.getList("DeadMobInventory", Tag.TAG_COMPOUND), wrapperLookup);
-        }
+    default public void readDeadMobInventory(ValueInput input) {
+        input.list("DeadMobInventory", ItemStack.CODEC).ifPresent(list -> this.getDeadMobInventory().fromItemList(list));
     }
 
-    default public void writeDeadMobInventory(CompoundTag nbt, HolderLookup.Provider wrapperLookup) {
-        nbt.put("DeadMobInventory", this.getDeadMobInventory().createTag(wrapperLookup));
+    default public void writeDeadMobInventory(ValueOutput output) {
+        this.getDeadMobInventory().storeAsItemList(output.list("DeadMobInventory", ItemStack.CODEC));
     }
 }

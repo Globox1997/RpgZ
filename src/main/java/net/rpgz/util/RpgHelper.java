@@ -13,7 +13,7 @@ public class RpgHelper {
     }
 
     public static boolean isExcludedFromLooting(Mob mobEntity) {
-        return mobEntity.getType().is(TagInit.EXCLUDED_ENTITIES) || ConfigInit.EXCLUDED_ENTITIES.contains(EntityType.getKey(mobEntity.getType()));
+        return mobEntity.getType().builtInRegistryHolder().is(TagInit.EXCLUDED_ENTITIES) || ConfigInit.EXCLUDED_ENTITIES.contains(EntityType.getKey(mobEntity.getType()));
     }
 
     public static boolean shouldDropLootDirectly(Mob mobEntity) {

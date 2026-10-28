@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.At;
 
 import net.fabricmc.api.Environment;
-import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
@@ -23,17 +23,16 @@ import net.fabricmc.api.EnvType;
 import net.rpgz.util.CorpseBox;
 
 @Environment(EnvType.CLIENT)
-@Mixin(GameRenderer.class)
-public class GameRendererMixin {
+@Mixin(LocalPlayer.class)
+public class LocalPlayerMixin {
 
-    // Corpses get targeted by their rotated CorpseBox below, not by their bigger axis aligned bounding box
     @ModifyArg(method = "pick(Lnet/minecraft/world/entity/Entity;DDF)Lnet/minecraft/world/phys/HitResult;", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/projectile/ProjectileUtil;getEntityHitResult(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/AABB;Ljava/util/function/Predicate;D)Lnet/minecraft/world/phys/EntityHitResult;"), index = 4)
-    private Predicate<Entity> findCrosshairTargetPredicateMixin(Predicate<Entity> predicate) {
+    private static Predicate<Entity> findCrosshairTargetPredicateMixin(Predicate<Entity> predicate) {
         return predicate.and(entity -> !CorpseBox.isCorpse(entity));
     }
 
     @Inject(method = "pick(Lnet/minecraft/world/entity/Entity;DDF)Lnet/minecraft/world/phys/HitResult;", at = @At("RETURN"), cancellable = true)
-    private void findCrosshairTargetMixin(Entity camera, double blockInteractionRange, double entityInteractionRange, float tickDelta, CallbackInfoReturnable<HitResult> info) {
+    private static void findCrosshairTargetMixin(Entity camera, double blockInteractionRange, double entityInteractionRange, float tickDelta, CallbackInfoReturnable<HitResult> info) {
         Vec3 start = camera.getEyePosition(tickDelta);
         Vec3 direction = camera.getViewVector(tickDelta);
         Vec3 end = start.add(direction.scale(entityInteractionRange));
@@ -55,12 +54,12 @@ public class GameRendererMixin {
         }
 
         HitResult hitResult = info.getReturnValue();
-        if (hitResult.getType() == HitResult.Type.MISS || corpseDistance < start.distanceToSqr(hitResult.getLocation()) || this.isCorpseInsideTargetedBlock(camera, hitResult, corpse)) {
+        if (hitResult.getType() == HitResult.Type.MISS || corpseDistance < start.distanceToSqr(hitResult.getLocation()) || isCorpseInsideTargetedBlock(camera, hitResult, corpse)) {
             info.setReturnValue(new EntityHitResult(corpse, corpseHitPos));
         }
     }
 
-    private boolean isCorpseInsideTargetedBlock(Entity camera, HitResult hitResult, Mob corpse) {
+    private static boolean isCorpseInsideTargetedBlock(Entity camera, HitResult hitResult, Mob corpse) {
         if (hitResult instanceof BlockHitResult blockHitResult && hitResult.getType() == HitResult.Type.BLOCK) {
             BlockPos pos = blockHitResult.getBlockPos();
             return !camera.level().getBlockState(pos).isCollisionShapeFullBlock(camera.level(), pos) && corpse.getBoundingBox().intersects(new AABB(pos));
