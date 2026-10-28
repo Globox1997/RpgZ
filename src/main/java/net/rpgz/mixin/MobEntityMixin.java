@@ -5,6 +5,7 @@ import java.util.stream.StreamSupport;
 import net.minecraft.entity.*;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.*;
+import net.rpgz.util.CorpseBox;
 import net.rpgz.util.DeadMobInventory;
 import net.rpgz.util.MobCorpse;
 import net.rpgz.util.RpgHelper;
@@ -115,8 +116,7 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
         }
 
         if (this.deathTime >= 20) {
-            // Has to get set on server and client
-            this.setBoundingBox(this.calculateCorpseBoundingBox());
+            this.setBoundingBox(CorpseBox.getBoundingBox((MobEntity) (Object) this));
 
             if (!this.getWorld().isClient()) {
                 Box box = this.getBoundingBox();
@@ -125,7 +125,6 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
 
                 if (this.getWorld().isRegionLoaded(blockPos, blockPos2) && !this.getDeadMobInventory().isEmpty()
                         && (RpgHelper.shouldDropLootDirectly((MobEntity) (Object) this) || this.isCorpseInsideBlock(box))) {
-                    // The float overload skips the dropStack injection, otherwise the items get put back into the dead mob inventory
                     for (ItemStack stack : this.getDeadMobInventory().clearToList()) {
                         this.dropStack(stack, 0.0F);
                     }
@@ -139,39 +138,11 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
             }
         }
 
-        // Only the server despawns the corpse, the removal gets synced to the clients
         if (!this.getWorld().isClient() && this.deathTime >= 20
                 && ((this.getDeadMobInventory().isEmpty() && ConfigInit.CONFIG.despawn_immediately_when_empty) || this.deathTime >= ConfigInit.CONFIG.despawn_corps_after_ticks)) {
             this.despawnParticlesServer();
             this.remove(RemovalReason.KILLED);
         }
-    }
-
-    // Matches the lying model from LivingEntityRenderer.setupTransforms
-    @Unique
-    private Box calculateCorpseBoundingBox() {
-        EntityDimensions dimensions = this.getDimensions(EntityPose.STANDING);
-        double width = dimensions.width();
-        double height = dimensions.height();
-        double x = this.getX();
-        double y = this.getY();
-        double z = this.getZ();
-
-        // Flat mobs like spiders get flipped onto their back and keep their footprint
-        if (width / height > 1.395D) {
-            return new Box(x - width / 2.0D, y, z - width / 2.0D, x + width / 2.0D, y + height, z + width / 2.0D);
-        }
-        // Other mobs fall onto their side, so the body lies from the feet sideways to the body yaw.
-        // The model is lifted by a quarter of the width (MobEntityRenderer), so the body spans from -width/4 to width*3/4.
-        float yaw = this.bodyYaw * MathHelper.RADIANS_PER_DEGREE;
-        double directionX = MathHelper.cos(yaw);
-        double directionZ = MathHelper.sin(yaw);
-        double headX = x + directionX * height;
-        double headZ = z + directionZ * height;
-        double halfThicknessX = Math.abs(directionZ) * width / 2.0D;
-        double halfThicknessZ = Math.abs(directionX) * width / 2.0D;
-        return new Box(Math.min(x, headX) - halfThicknessX, y - width / 4.0D, Math.min(z, headZ) - halfThicknessZ, Math.max(x, headX) + halfThicknessX, y + width * 0.75D,
-                Math.max(z, headZ) + halfThicknessZ);
     }
 
     @Unique
