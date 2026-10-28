@@ -5,33 +5,32 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 import net.rpgz.util.MobCorpse;
 import net.rpgz.util.RpgHelper;
 
 @Mixin(Entity.class)
 public abstract class EntityMixin {
 
-    @Inject(method = "dropStack(Lnet/minecraft/item/ItemStack;)Lnet/minecraft/entity/ItemEntity;", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "spawnAtLocation(Lnet/minecraft/world/item/ItemStack;)Lnet/minecraft/world/entity/item/ItemEntity;", at = @At("HEAD"), cancellable = true)
     private void dropStackMixin(ItemStack stack, CallbackInfoReturnable<ItemEntity> info) {
-        if ((Object) this instanceof MobEntity mobEntity && !mobEntity.getWorld().isClient() && mobEntity.isDead() && !RpgHelper.shouldDropLootDirectly(mobEntity)) {
-            ItemStack remainder = RpgHelper.getDeadMobInventory(mobEntity).addStack(stack);
-            info.setReturnValue(remainder.isEmpty() ? null : this.dropStack(remainder, 0.0F));
+        if ((Object) this instanceof Mob mobEntity && !mobEntity.level().isClientSide() && mobEntity.isDeadOrDying() && !RpgHelper.shouldDropLootDirectly(mobEntity)) {
+            ItemStack remainder = RpgHelper.getDeadMobInventory(mobEntity).addItem(stack);
+            info.setReturnValue(remainder.isEmpty() ? null : this.spawnAtLocation(remainder, 0.0F));
         }
     }
 
     @Inject(method = "interactAt", at = @At("HEAD"), cancellable = true)
-    private void interactAtMixin(PlayerEntity player, Vec3d hitPos, Hand hand, CallbackInfoReturnable<ActionResult> info) {
+    private void interactAtMixin(Player player, Vec3 hitPos, InteractionHand hand, CallbackInfoReturnable<InteractionResult> info) {
         if ((Object) this instanceof MobCorpse mobCorpse) {
-            ActionResult result = mobCorpse.interactWithCorpse(player, hand);
+            InteractionResult result = mobCorpse.interactWithCorpse(player, hand);
             if (result != null) {
                 info.setReturnValue(result);
             }
@@ -39,5 +38,5 @@ public abstract class EntityMixin {
     }
 
     @Shadow
-    public abstract ItemEntity dropStack(ItemStack stack, float yOffset);
+    public abstract ItemEntity spawnAtLocation(ItemStack stack, float yOffset);
 }

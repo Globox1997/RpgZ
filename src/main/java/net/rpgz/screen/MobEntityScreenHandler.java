@@ -1,28 +1,28 @@
 package net.rpgz.screen;
 
-import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.screen.slot.Slot;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import net.rpgz.init.SoundInit;
 import net.rpgz.init.TagInit;
 import org.jetbrains.annotations.Nullable;
 
-public class MobEntityScreenHandler extends ScreenHandler {
-    private final SimpleInventory inventory;
+public class MobEntityScreenHandler extends AbstractContainerMenu {
+    private final SimpleContainer inventory;
     @Nullable
-    private final MobEntity mobEntity;
+    private final Mob mobEntity;
 
-    public MobEntityScreenHandler(int syncId, PlayerInventory playerInventory) {
-        this(syncId, playerInventory, new SimpleInventory(9), null);
+    public MobEntityScreenHandler(int syncId, Inventory playerInventory) {
+        this(syncId, playerInventory, new SimpleContainer(9), null);
     }
 
-    public MobEntityScreenHandler(int syncId, PlayerInventory playerInventory, SimpleInventory simpleInventory, @Nullable MobEntity mobEntity) {
-        super(ScreenHandlerType.GENERIC_9X1, syncId);
+    public MobEntityScreenHandler(int syncId, Inventory playerInventory, SimpleContainer simpleInventory, @Nullable Mob mobEntity) {
+        super(MenuType.GENERIC_9x1, syncId);
         this.inventory = simpleInventory;
         this.mobEntity = mobEntity;
 
@@ -30,7 +30,7 @@ public class MobEntityScreenHandler extends ScreenHandler {
         for (m = 0; m < 9; ++m) {
             this.addSlot(new Slot(inventory, m, 8 + m * 18, 20) {
                 @Override
-                public boolean canInsert(ItemStack stack) {
+                public boolean mayPlace(ItemStack stack) {
                     return false;
                 }
             });
@@ -47,31 +47,31 @@ public class MobEntityScreenHandler extends ScreenHandler {
     }
 
     @Override
-    public boolean canUse(PlayerEntity player) {
+    public boolean stillValid(Player player) {
         return this.mobEntity == null || player.canInteractWithEntity(this.mobEntity, 4.0D);
     }
 
     @Override
-    public ItemStack quickMove(PlayerEntity player, int index) {
-        if (index >= this.inventory.size()) {
+    public ItemStack quickMoveStack(Player player, int index) {
+        if (index >= this.inventory.getContainerSize()) {
             return ItemStack.EMPTY;
         }
         Slot slot = this.slots.get(index);
-        if (slot == null || !slot.hasStack()) {
+        if (slot == null || !slot.hasItem()) {
             return ItemStack.EMPTY;
         }
-        ItemStack itemStack2 = slot.getStack();
+        ItemStack itemStack2 = slot.getItem();
         ItemStack itemStack = itemStack2.copy();
-        if (!this.insertItem(itemStack2, this.inventory.size(), this.slots.size(), true)) {
+        if (!this.moveItemStackTo(itemStack2, this.inventory.getContainerSize(), this.slots.size(), true)) {
             return ItemStack.EMPTY;
         }
         if (itemStack2.isEmpty()) {
-            slot.setStack(ItemStack.EMPTY);
+            slot.setByPlayer(ItemStack.EMPTY);
         } else {
-            slot.markDirty();
+            slot.setChanged();
         }
 
-        if (itemStack.isIn(TagInit.RARE_ITEMS)) {
+        if (itemStack.is(TagInit.RARE_ITEMS)) {
             player.playSound(SoundInit.COIN_LOOT_SOUND_EVENT, 1F, 1F);
         } else {
             player.playSound(SoundInit.LOOT_SOUND_EVENT, 1F, 1F);

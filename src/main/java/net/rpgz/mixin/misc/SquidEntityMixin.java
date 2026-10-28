@@ -1,26 +1,25 @@
 package net.rpgz.mixin.misc;
 
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.animal.Squid;
+import net.minecraft.world.entity.animal.WaterAnimal;
+import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.At;
 
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.mob.WaterCreatureEntity;
-import net.minecraft.entity.passive.SquidEntity;
-import net.minecraft.world.World;
+@Mixin(Squid.class)
+public abstract class SquidEntityMixin extends WaterAnimal {
 
-@Mixin(SquidEntity.class)
-public abstract class SquidEntityMixin extends WaterCreatureEntity {
-
-    public SquidEntityMixin(EntityType<? extends WaterCreatureEntity> entityType, World world) {
+    public SquidEntityMixin(EntityType<? extends WaterAnimal> entityType, Level world) {
         super(entityType, world);
     }
 
-    @Inject(method = "tickMovement", at = @At(value = "HEAD"), cancellable = true)
+    @Inject(method = "aiStep", at = @At(value = "HEAD"), cancellable = true)
     public void tickMovementMixinSquid(CallbackInfo info) {
-        if (this.isDead()) {
-            super.tickMovement();
+        if (this.isDeadOrDying()) {
+            super.aiStep();
             info.cancel();
         }
     }

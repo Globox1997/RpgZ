@@ -6,19 +6,19 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 
 import net.fabricmc.api.Environment;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.Mob;
 import net.fabricmc.api.EnvType;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.mob.MobEntity;
 
 @Environment(EnvType.CLIENT)
-@Mixin(ClientWorld.class)
+@Mixin(ClientLevel.class)
 public abstract class ClientWorldMixin {
 
-    @Inject(method = "Lnet/minecraft/client/world/ClientWorld;tickEntity(Lnet/minecraft/entity/Entity;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;tick()V"))
+    @Inject(method = "tickNonPassenger", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;tick()V"))
     private void tickEntityMixin(Entity entity, CallbackInfo info) {
-        if (!entity.isAlive() && entity instanceof MobEntity) {
-            entity.age = -1; // age has to be 0 or -1 cause of some models (example: guardian)
+        if (!entity.isAlive() && entity instanceof Mob) {
+            entity.tickCount = -1; // age has to be 0 or -1 cause of some models (example: guardian)
         }
     }
 

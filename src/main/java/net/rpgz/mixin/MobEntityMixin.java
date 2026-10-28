@@ -1,10 +1,27 @@
 package net.rpgz.mixin;
 
 import java.util.stream.StreamSupport;
-
-import net.minecraft.entity.*;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.math.*;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.FlyingMob;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.npc.InventoryCarrier;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ShovelItem;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.rpgz.util.CorpseBox;
 import net.rpgz.util.DeadMobInventory;
 import net.rpgz.util.MobCorpse;
@@ -16,74 +33,60 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.At;
-
-import net.minecraft.entity.mob.FlyingEntity;
-import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ShovelItem;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.world.World;
 import net.rpgz.init.ConfigInit;
 import net.rpgz.screen.MobEntityScreenHandler;
 
-@Mixin(MobEntity.class)
+@Mixin(Mob.class)
 public abstract class MobEntityMixin extends LivingEntity implements DeadMobInventory, MobCorpse {
 
     @Unique
     private static final int DESPAWN_WARNING_TICKS = 200;
 
     @Unique
-    private final SimpleInventory deadMobInventory = new SimpleInventory(9);
+    private final SimpleContainer deadMobInventory = new SimpleContainer(9);
 
-    public MobEntityMixin(EntityType<? extends LivingEntity> entityType, World world) {
+    public MobEntityMixin(EntityType<? extends LivingEntity> entityType, Level world) {
         super(entityType, world);
     }
 
-    @Inject(method = "writeCustomDataToNbt", at = @At("TAIL"))
-    private void writeCustomDataToNbtMixin(NbtCompound nbt, CallbackInfo info) {
-        if (this.isDead()) {
-            this.writeDeadMobInventory(nbt, this.getRegistryManager());
+    @Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
+    private void writeCustomDataToNbtMixin(CompoundTag nbt, CallbackInfo info) {
+        if (this.isDeadOrDying()) {
+            this.writeDeadMobInventory(nbt, this.registryAccess());
         }
     }
 
-    @Inject(method = "readCustomDataFromNbt", at = @At("TAIL"))
-    private void readCustomDataFromNbtMixin(NbtCompound nbt, CallbackInfo info) {
-        if (this.isDead()) {
-            this.readDeadMobInventory(nbt, this.getRegistryManager());
+    @Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
+    private void readCustomDataFromNbtMixin(CompoundTag nbt, CallbackInfo info) {
+        if (this.isDeadOrDying()) {
+            this.readDeadMobInventory(nbt, this.registryAccess());
         }
     }
 
-    @Inject(method = "tickMovement", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "aiStep", at = @At("HEAD"), cancellable = true)
     private void tickMovementMixin(CallbackInfo info) {
         if (this.deathTime > 19) {
-            Box box = this.getBoundingBox();
-            BlockPos blockPos = BlockPos.ofFloored(box.getCenter().getX(), box.minY, box.getCenter().getZ());
-            if (this.getWorld().getBlockState(blockPos).isAir()) {
-                if ((Object) this instanceof FlyingEntity) {
-                    this.setPos(this.getX(), this.getY() - 0.25D, this.getZ());
-                } else if (this.getVelocity().y > 0) {
-                    this.setPos(this.getX(), this.getY() - (Math.min(this.getVelocity().y, 0.8D)), this.getZ());
-                } else if (this.getVelocity().y < 0) {
-                    this.setPos(this.getX(), this.getY() + (Math.max(this.getVelocity().y, -0.8D)) + (this.getVelocity().y > -0.2D ? -0.4D : 0.0D), this.getZ());
+            AABB box = this.getBoundingBox();
+            BlockPos blockPos = BlockPos.containing(box.getCenter().x(), box.minY, box.getCenter().z());
+            if (this.level().getBlockState(blockPos).isAir()) {
+                if ((Object) this instanceof FlyingMob) {
+                    this.setPosRaw(this.getX(), this.getY() - 0.25D, this.getZ());
+                } else if (this.getDeltaMovement().y > 0) {
+                    this.setPosRaw(this.getX(), this.getY() - (Math.min(this.getDeltaMovement().y, 0.8D)), this.getZ());
+                } else if (this.getDeltaMovement().y < 0) {
+                    this.setPosRaw(this.getX(), this.getY() + (Math.max(this.getDeltaMovement().y, -0.8D)) + (this.getDeltaMovement().y > -0.2D ? -0.4D : 0.0D), this.getZ());
                 } else {
-                    this.setPos(this.getX(), this.getY() - 0.1D, this.getZ());
+                    this.setPosRaw(this.getX(), this.getY() - 0.1D, this.getZ());
                 }
             } else
                 // Water floating
-                if (this.getWorld().containsFluid(box.offset(0.0D, box.getLengthY(), 0.0D))) {
+                if (this.level().containsAnyLiquid(box.move(0.0D, box.getYsize(), 0.0D))) {
                     if (ConfigInit.CONFIG.surfacing_in_water)
-                        this.setPos(this.getX(), this.getY() + 0.03D, this.getZ());
-                    if (this.canWalkOnFluid(this.getWorld().getFluidState(this.getBlockPos())))
-                        this.setPos(this.getX(), this.getY() + 0.03D, this.getZ());
-                    else if (this.getWorld().containsFluid(box.offset(0.0D, -box.getLengthY() + (box.getLengthY() / 5), 0.0D)) && !ConfigInit.CONFIG.surfacing_in_water)
-                        this.setPos(this.getX(), this.getY() - 0.05D, this.getZ());
+                        this.setPosRaw(this.getX(), this.getY() + 0.03D, this.getZ());
+                    if (this.canStandOnFluid(this.level().getFluidState(this.blockPosition())))
+                        this.setPosRaw(this.getX(), this.getY() + 0.03D, this.getZ());
+                    else if (this.level().containsAnyLiquid(box.move(0.0D, -box.getYsize() + (box.getYsize() / 5), 0.0D)) && !ConfigInit.CONFIG.surfacing_in_water)
+                        this.setPosRaw(this.getX(), this.getY() - 0.05D, this.getZ());
                 }
             info.cancel();
         }
@@ -91,12 +94,12 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
 
     @Override
     public void onCorpseCreated() {
-        if (!this.getWorld().isClient()) {
-            this.removeAllPassengers();
+        if (!this.level().isClientSide()) {
+            this.ejectPassengers();
             // Clear the inventory, some mobs (piglin, allay) drop it again via dropStack in onDeath
-            if (this instanceof InventoryOwner inventoryOwner && !inventoryOwner.getInventory().isEmpty()) {
-                for (ItemStack stack : inventoryOwner.getInventory().clearToList()) {
-                    this.dropStack(stack);
+            if (this instanceof InventoryCarrier inventoryOwner && !inventoryOwner.getInventory().isEmpty()) {
+                for (ItemStack stack : inventoryOwner.getInventory().removeAllItems()) {
+                    this.spawnAtLocation(stack);
                 }
             }
         }
@@ -108,7 +111,7 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
         ++this.deathTime;
         if (this.deathTime == 1) {
             if (this.isOnFire()) {
-                this.extinguish();
+                this.clearFire();
             }
             if (this.getVehicle() != null) {
                 this.stopRiding();
@@ -116,17 +119,17 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
         }
 
         if (this.deathTime >= 20) {
-            this.setBoundingBox(CorpseBox.getBoundingBox((MobEntity) (Object) this));
+            this.setBoundingBox(CorpseBox.getBoundingBox((Mob) (Object) this));
 
-            if (!this.getWorld().isClient()) {
-                Box box = this.getBoundingBox();
-                BlockPos blockPos = BlockPos.ofFloored(box.minX + 0.001D, box.minY + 0.001D, box.minZ + 0.001D).up();
-                BlockPos blockPos2 = BlockPos.ofFloored(box.maxX - 0.001D, box.maxY - 0.001D, box.maxZ - 0.001D);
+            if (!this.level().isClientSide()) {
+                AABB box = this.getBoundingBox();
+                BlockPos blockPos = BlockPos.containing(box.minX + 0.001D, box.minY + 0.001D, box.minZ + 0.001D).above();
+                BlockPos blockPos2 = BlockPos.containing(box.maxX - 0.001D, box.maxY - 0.001D, box.maxZ - 0.001D);
 
-                if (this.getWorld().isRegionLoaded(blockPos, blockPos2) && !this.getDeadMobInventory().isEmpty()
-                        && (RpgHelper.shouldDropLootDirectly((MobEntity) (Object) this) || this.isCorpseInsideBlock(box))) {
-                    for (ItemStack stack : this.getDeadMobInventory().clearToList()) {
-                        this.dropStack(stack, 0.0F);
+                if (this.level().hasChunksAt(blockPos, blockPos2) && !this.getDeadMobInventory().isEmpty()
+                        && (RpgHelper.shouldDropLootDirectly((Mob) (Object) this) || this.isCorpseInsideBlock(box))) {
+                    for (ItemStack stack : this.getDeadMobInventory().removeAllItems()) {
+                        this.spawnAtLocation(stack, 0.0F);
                     }
                 }
 
@@ -138,7 +141,7 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
             }
         }
 
-        if (!this.getWorld().isClient() && this.deathTime >= 20
+        if (!this.level().isClientSide() && this.deathTime >= 20
                 && ((this.getDeadMobInventory().isEmpty() && ConfigInit.CONFIG.despawn_immediately_when_empty) || this.deathTime >= ConfigInit.CONFIG.despawn_corps_after_ticks)) {
             this.despawnParticlesServer();
             this.remove(RemovalReason.KILLED);
@@ -146,18 +149,18 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
     }
 
     @Unique
-    private boolean isCorpseInsideBlock(Box box) {
-        Box checkBox = new Box(box.maxX, box.maxY, box.maxZ, box.maxX + 0.001D, box.maxY + 0.001D, box.maxZ + 0.001D);
-        Box checkBoxTwo = new Box(box.minX, box.maxY, box.minZ, box.minX + 0.001D, box.maxY + 0.001D, box.minZ + 0.001D);
-        Box checkBoxThree = new Box(box.maxX - (box.getLengthX() / 3D), box.maxY, box.maxZ - (box.getLengthZ() / 3D), box.maxX + 0.001D - (box.getLengthX() / 3D), box.maxY + 0.001D,
-                box.maxZ + 0.001D - (box.getLengthZ() / 3D));
+    private boolean isCorpseInsideBlock(AABB box) {
+        AABB checkBox = new AABB(box.maxX, box.maxY, box.maxZ, box.maxX + 0.001D, box.maxY + 0.001D, box.maxZ + 0.001D);
+        AABB checkBoxTwo = new AABB(box.minX, box.maxY, box.minZ, box.minX + 0.001D, box.maxY + 0.001D, box.minZ + 0.001D);
+        AABB checkBoxThree = new AABB(box.maxX - (box.getXsize() / 3D), box.maxY, box.maxZ - (box.getZsize() / 3D), box.maxX + 0.001D - (box.getXsize() / 3D), box.maxY + 0.001D,
+                box.maxZ + 0.001D - (box.getZsize() / 3D));
         boolean collidesThree = this.hasBlockCollision(checkBoxThree);
         return (collidesThree || this.hasBlockCollision(checkBox)) && (collidesThree || this.hasBlockCollision(checkBoxTwo));
     }
 
     @Unique
-    private boolean hasBlockCollision(Box box) {
-        return !StreamSupport.stream(this.getWorld().getBlockCollisions(this, box).spliterator(), false).allMatch(VoxelShape::isEmpty);
+    private boolean hasBlockCollision(AABB box) {
+        return !StreamSupport.stream(this.level().getBlockCollisions(this, box).spliterator(), false).allMatch(VoxelShape::isEmpty);
     }
 
     @Unique
@@ -166,73 +169,73 @@ public abstract class MobEntityMixin extends LivingEntity implements DeadMobInve
             double d = this.random.nextGaussian() * 0.025D;
             double e = this.random.nextGaussian() * 0.025D;
             double f = this.random.nextGaussian() * 0.025D;
-            double x = MathHelper.nextDouble(random, this.getBoundingBox().minX - 0.5D, this.getBoundingBox().maxX) + 0.5D;
-            double y = MathHelper.nextDouble(random, this.getBoundingBox().minY, this.getBoundingBox().maxY) + 0.5D;
-            double z = MathHelper.nextDouble(random, this.getBoundingBox().minZ - 0.5D, this.getBoundingBox().maxZ) + 0.5D;
-            ((ServerWorld) this.getWorld()).spawnParticles(ParticleTypes.POOF, x, y, z, 0, d, e, f, 0.01D);
+            double x = Mth.nextDouble(random, this.getBoundingBox().minX - 0.5D, this.getBoundingBox().maxX) + 0.5D;
+            double y = Mth.nextDouble(random, this.getBoundingBox().minY, this.getBoundingBox().maxY) + 0.5D;
+            double z = Mth.nextDouble(random, this.getBoundingBox().minZ - 0.5D, this.getBoundingBox().maxZ) + 0.5D;
+            ((ServerLevel) this.level()).sendParticles(ParticleTypes.POOF, x, y, z, 0, d, e, f, 0.01D);
         }
     }
 
     @Unique
     private void despawnWarningParticlesServer() {
-        Box box = this.getBoundingBox();
-        Vec3d center = box.getCenter();
-        ((ServerWorld) this.getWorld()).spawnParticles(ParticleTypes.SMOKE, center.getX(), box.maxY, center.getZ(), 3, box.getLengthX() / 4.0D, 0.05D, box.getLengthZ() / 4.0D, 0.01D);
+        AABB box = this.getBoundingBox();
+        Vec3 center = box.getCenter();
+        ((ServerLevel) this.level()).sendParticles(ParticleTypes.SMOKE, center.x(), box.maxY, center.z(), 3, box.getXsize() / 4.0D, 0.05D, box.getZsize() / 4.0D, 0.01D);
     }
 
     // Stop turning after death
-    @Inject(method = "turnHead", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "tickHeadTurn", at = @At("HEAD"), cancellable = true)
     public void turnHead(float bodyRotation, float headRotation, CallbackInfoReturnable<Float> info) {
         if (this.deathTime > 0) {
             info.setReturnValue(0.0F);
         }
     }
 
-    @Inject(method = "Lnet/minecraft/entity/mob/MobEntity;isAffectedByDaylight()Z", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "isSunBurnTick", at = @At("HEAD"), cancellable = true)
     private void isAffectedByDaylightMixin(CallbackInfoReturnable<Boolean> info) {
-        if (this.isDead()) {
+        if (this.isDeadOrDying()) {
             info.setReturnValue(false);
         }
     }
 
     @Override
-    public SimpleInventory getDeadMobInventory() {
+    public SimpleContainer getDeadMobInventory() {
         return this.deadMobInventory;
     }
 
     @Override
     @Nullable
-    public ActionResult interactWithCorpse(PlayerEntity player, Hand hand) {
+    public InteractionResult interactWithCorpse(Player player, InteractionHand hand) {
         if (this.deathTime <= 20) {
             return null;
         }
-        if (!this.getWorld().isClient()) {
-            if (player.getStackInHand(hand).getItem() instanceof ShovelItem) {
+        if (!this.level().isClientSide()) {
+            if (player.getItemInHand(hand).getItem() instanceof ShovelItem) {
                 if (!this.getDeadMobInventory().isEmpty()) {
-                    for (int i = 0; i < this.getDeadMobInventory().size(); i++) {
-                        player.getInventory().offerOrDrop(this.getDeadMobInventory().getStack(i));
+                    for (int i = 0; i < this.getDeadMobInventory().getContainerSize(); i++) {
+                        player.getInventory().placeItemBackInInventory(this.getDeadMobInventory().getItem(i));
                     }
-                    this.getDeadMobInventory().clear();
+                    this.getDeadMobInventory().clearContent();
                 }
                 if (!ConfigInit.CONFIG.despawn_immediately_when_empty) {
                     this.despawnParticlesServer();
                     this.remove(RemovalReason.KILLED);
                 }
-                return ActionResult.SUCCESS;
+                return InteractionResult.SUCCESS;
             }
             if (!this.getDeadMobInventory().isEmpty()) {
-                if (player.isSneaking()) {
-                    for (int i = 0; i < this.getDeadMobInventory().size(); i++) {
-                        player.getInventory().offerOrDrop(this.getDeadMobInventory().getStack(i));
+                if (player.isShiftKeyDown()) {
+                    for (int i = 0; i < this.getDeadMobInventory().getContainerSize(); i++) {
+                        player.getInventory().placeItemBackInInventory(this.getDeadMobInventory().getItem(i));
                     }
-                    this.getDeadMobInventory().clear();
+                    this.getDeadMobInventory().clearContent();
                 } else {
-                    player.openHandledScreen(new SimpleNamedScreenHandlerFactory((syncId, inv, p) -> new MobEntityScreenHandler(syncId, p.getInventory(), this.getDeadMobInventory(), (MobEntity) (Object) this), this.getName()));
+                    player.openMenu(new SimpleMenuProvider((syncId, inv, p) -> new MobEntityScreenHandler(syncId, p.getInventory(), this.getDeadMobInventory(), (Mob) (Object) this), this.getName()));
                 }
-                return ActionResult.SUCCESS;
+                return InteractionResult.SUCCESS;
             }
         }
-        return ActionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
 }

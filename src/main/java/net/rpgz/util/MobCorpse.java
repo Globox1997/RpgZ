@@ -1,10 +1,9 @@
 package net.rpgz.util;
 
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
-
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
 
 public interface MobCorpse {
 
@@ -13,5 +12,5 @@ public interface MobCorpse {
     public void tickCorpse();
 
     @Nullable
-    public ActionResult interactWithCorpse(PlayerEntity player, Hand hand);
+    public InteractionResult interactWithCorpse(Player player, InteractionHand hand);
 }

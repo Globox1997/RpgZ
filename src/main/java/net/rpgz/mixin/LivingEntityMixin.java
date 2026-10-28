@@ -4,22 +4,21 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.LivingEntity;
 import net.rpgz.util.MobCorpse;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin {
 
-    @Inject(method = "onDeath", at = @At("HEAD"))
+    @Inject(method = "die", at = @At("HEAD"))
     private void onDeathMixin(DamageSource damageSource, CallbackInfo info) {
         if ((Object) this instanceof MobCorpse mobCorpse) {
             mobCorpse.onCorpseCreated();
         }
     }
 
-    @Inject(method = "updatePostDeath", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "tickDeath", at = @At("HEAD"), cancellable = true)
     private void updatePostDeathMixin(CallbackInfo info) {
         if ((Object) this instanceof MobCorpse mobCorpse) {
             mobCorpse.tickCorpse();

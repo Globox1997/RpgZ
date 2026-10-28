@@ -1,21 +1,21 @@
 package net.rpgz.util;
 
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.world.SimpleContainer;
 
 public interface DeadMobInventory {
 
-    public SimpleInventory getDeadMobInventory();
+    public SimpleContainer getDeadMobInventory();
 
-    default public void readDeadMobInventory(NbtCompound nbt, RegistryWrapper.WrapperLookup wrapperLookup) {
-        if (nbt.contains("DeadMobInventory", NbtElement.LIST_TYPE)) {
-            this.getDeadMobInventory().readNbtList(nbt.getList("DeadMobInventory", NbtElement.COMPOUND_TYPE), wrapperLookup);
+    default public void readDeadMobInventory(CompoundTag nbt, HolderLookup.Provider wrapperLookup) {
+        if (nbt.contains("DeadMobInventory", Tag.TAG_LIST)) {
+            this.getDeadMobInventory().fromTag(nbt.getList("DeadMobInventory", Tag.TAG_COMPOUND), wrapperLookup);
         }
     }
 
-    default public void writeDeadMobInventory(NbtCompound nbt, RegistryWrapper.WrapperLookup wrapperLookup) {
-        nbt.put("DeadMobInventory", this.getDeadMobInventory().toNbtList(wrapperLookup));
+    default public void writeDeadMobInventory(CompoundTag nbt, HolderLookup.Provider wrapperLookup) {
+        nbt.put("DeadMobInventory", this.getDeadMobInventory().createTag(wrapperLookup));
     }
 }

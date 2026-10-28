@@ -1,25 +1,24 @@
 package net.rpgz.mixin.misc;
 
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.monster.Phantom;
+import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.At;
 
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.entity.mob.PhantomEntity;
-import net.minecraft.world.World;
-
-@Mixin(PhantomEntity.class)
-public abstract class PhantomEntityMixin extends MobEntity {
-    public PhantomEntityMixin(EntityType<? extends MobEntity> entityType, World world) {
+@Mixin(Phantom.class)
+public abstract class PhantomEntityMixin extends Mob {
+    public PhantomEntityMixin(EntityType<? extends Mob> entityType, Level world) {
         super(entityType, world);
     }
 
-    @Inject(method = "tickMovement", at = @At(value = "HEAD"), cancellable = true)
+    @Inject(method = "aiStep", at = @At(value = "HEAD"), cancellable = true)
     public void tickMovementMixinPhantom(CallbackInfo info) {
         if (this.deathTime > 0) {
-            super.tickMovement();
+            super.aiStep();
             info.cancel();
         }
     }
