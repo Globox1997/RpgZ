@@ -1,0 +1,37 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "GPLv3"
+issueTrackerURL = "https://github.com/Globox1997/RpgZ/issues"
+
+[[mods]]
+modId = "rpgz"
+version = "${version}"
+displayName = "RPGZ"
+displayURL = "https://www.curseforge.com/minecraft/mc-mods/rpgz"
+iconFile = "assets/rpgz/icon.png"
+authors = "Globox_Z"
+description = '''Rpg Style Looting'''
+
+[[mixins]]
+config = "rpgz.mixins.json"
+
+[[dependencies.rpgz]]
+modId = "neoforge"
+type = "required"
+versionRange = "[${neoforge_version},)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.rpgz]]
+modId = "minecraft"
+type = "required"
+versionRange = "[${minecraft_version},)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.rpgz]]
+modId = "cloth_config"
+type = "required"
+versionRange = "[${cloth_config_version},)"
+ordering = "NONE"
+side = "BOTH"

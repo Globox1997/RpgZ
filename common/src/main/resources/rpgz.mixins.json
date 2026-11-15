@@ -1,0 +1,27 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.rpgz.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "EntityMixin",
+    "LivingEntityMixin",
+    "MobEntityMixin",
+    "HopperBlockEntityMixin",
+    "MonsterMixin",
+    "misc.BlazeEntityMixin",
+    "misc.EndermanEntityMixin",
+    "misc.SquidEntityMixin",
+    "misc.ChickenEntityMixin"
+  ],
+  "client": [
+    "client.LivingEntityRendererMixin",
+    "client.ClientWorldMixin",
+    "client.LocalPlayerMixin",
+    "client.EntityRendererMixin",
+    "client.MobEntityRendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
